@@ -1,8 +1,30 @@
+# Základ
 /vendor/
 /node_modules/
 /cache/
 /logs/
 /tmp/
-.env
+/storage/
+/sessions/
+/bower_components/
+
+# IDE a OS
 /.idea/
 /.vscode/
+*.code-workspace
+.DS_Store
+Thumbs.db
+
+# Build / artefakty
+/dist/
+/build/
+/coverage/
+
+# Env a konfigurace s tajemstvími
+.env
+.env.*
+!.env.example
+
+# Nette / Latte / Twig / Smarty cache (pokud používáš)
+temp/
+templates_c/
