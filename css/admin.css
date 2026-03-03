@@ -1,0 +1,306 @@
+
+
+/* Dashboard cards */
+.dashboard-card {
+    transition: transform 0.15s ease, box-shadow 0.15s ease;
+    cursor: pointer;
+}
+
+.dashboard-card:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 0.5rem 1rem rgba(0,0,0,0.15);
+}
+
+/* Přizpůsobení tabulek */
+.table th, .table td {
+    vertical-align: middle;
+}
+
+/* Hezký background pro celý admin */
+body.bg-light {
+    background-color: #f8f9fa !important;
+}
+
+.modal.tinymce-modal {
+    z-index: 2000 !important;
+}
+
+.modal-backdrop.tinymce-backdrop {
+    z-index: 1999 !important;
+}
+
+/* Skrytý dropdown */
+.dropdown-hover {
+    position: relative;
+    cursor: pointer;
+}
+
+.dropdown-hover .dropdown-menu-custom {
+    visibility: hidden;
+    opacity: 0;
+    transform: translateY(5px);
+    transition: opacity 0.2s ease, transform 0.2s ease;
+
+    position: absolute;
+    right: 0;
+    top: 100%;
+    background: #fff;
+    border-radius: 0.5rem;
+    /* Jemný stín, aby působilo jako floating card */
+    box-shadow: 0 6px 18px rgba(0,0,0,0.12);
+    list-style: none;
+    padding: 0;
+    margin: 0;
+    min-width: 180px;
+    z-index: 1000;
+    /* Klíčové pro zachování zaoblení při hoveru */
+    overflow: hidden;
+}
+
+.dropdown-hover:hover .dropdown-menu-custom {
+    visibility: visible;
+    opacity: 1;
+    transform: translateY(0);
+}
+
+.dropdown-menu-custom li a {
+    display: block;
+    padding: 0.5rem 1rem;
+    color: #212529;
+    text-decoration: none;
+    transition: background-color 0.15s ease;
+}
+
+.dropdown-menu-custom li a:hover {
+    background-color: #f8f9fa;
+}
+
+.dropdown-menu-custom li a.text-danger:hover {
+    background-color: #ffe8e8;
+}
+.editable-title {
+  border-bottom: 1px dotted rgba(0,0,0,0.35);
+  cursor: text;
+  padding: 2px 4px;
+  border-radius: .25rem;
+  min-width: 40px;
+}
+.editable-title:hover {
+  background: rgba(0,0,0,0.04);
+}
+.editable-title:focus {
+  outline: 2px solid rgba(13,110,253,.25); /* bootstrap primary-ish */
+  background: #fff;
+}
+.editable-hint {
+  opacity: .6;
+}
+.editable-title.empty {
+  color: #6c757d; /* muted */
+  font-style: italic;
+}
+
+/* „Uloženo“ badge */
+.save-badge {
+  display: inline-block;
+  background: #eaf7ea;
+  color: #198754;
+  border: 1px solid #bfe3bf;
+  padding: 2px 8px;
+  border-radius: 999px;
+  font-size: 12px;
+  line-height: 1.2;
+  margin-top: .25rem;
+  opacity: 0;
+  transform: translateY(-4px);
+  transition: opacity .2s ease, transform .2s ease;
+}
+.save-badge.show {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+.card-img-top { object-fit: cover; height: 220px; }
+.editable-title { max-width: 100%; display: inline-block; }
+
+/* Levé menu – základ */
+.sidebar .nav-pills .nav-link {
+  color: #334155; /* slate-700 */
+  border-radius: .75rem;
+}
+
+/* Hover */
+.sidebar .nav-pills .nav-link:hover {
+  background: #f8fafc; /* slate-50 */
+  color: #0f172a;      /* slate-900 */
+}
+
+/* Aktivní stav – přebijeme Bootstrap pills (které dávají white text) */
+.sidebar .nav-pills .nav-link.active,
+.sidebar .nav-pills .show > .nav-link {
+  background: #eef2f7; /* světlé „pill“ pozadí */
+  color: #0f172a;      /* tmavý text */
+  font-weight: 600;
+}
+
+/* Ikonka v aktivní položce a hoveru trochu ztmavnout */
+.sidebar .nav-pills .nav-link .bi { opacity: .75; }
+.sidebar .nav-pills .nav-link.active .bi,
+.sidebar .nav-pills .nav-link:hover .bi { opacity: 1; }
+
+ .admin-wrap { min-height: 100vh; }
+    .sidebar {
+      width: 260px;
+      flex: 0 0 260px;
+      border-right: 1px solid #e5e7eb;
+      background: #fff;
+    }
+    .content { flex: 1 1 auto; }
+    .nav-aside .nav-link { color:#374151; border-radius:.75rem; }
+    .nav-aside .nav-link:hover { background:#f8fafc; }
+    .nav-aside .nav-link.active { background:#eef2f7; font-weight:600; }
+
+/* Drž dropdown mimo tok layoutu, ať navbar neroste */
+.navbar .dropdown { position: relative; }
+.navbar .dropdown-menu {
+  position: absolute !important;
+  right: 0; left: auto;
+  top: 100%;
+  margin-top: .5rem;
+  transform: none !important;   /* žádné popper transformace */
+}
+
+/* (volitelné) stabilní scrollbary = žádné „cuknutí“ šířky */
+/* --- Mobilní layout: sidebar pryč, obsah přes celou šířku --- */
+@media (max-width: 991.98px) {
+  .admin-wrap { display: block; }
+  .sidebar { display: none !important; } /* pro jistotu */
+  .content { width: 100%; padding: 1rem; } /* už tam máš p-3, tohle je pojistka */
+}
+
+/* --- Zakaž pevné šířky, pokud by se někde vloudily --- */
+img, video { max-width: 100%; height: auto; }
+.table { width: 100%; }
+
+/* --- Tabulky musí scrollovat na malých displejích --- */
+.table-responsive { overflow-x: auto; }
+
+/* --- Select2 dělá často nešvar s pevnou šířkou --- */
+.select2-container { width: 100% !important; }
+
+/* --- Offcanvas default OK, jen drobnost pro delší názvy --- */
+#offcanvasNav .nav-link { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+
+/* --- Zabrání “cuknutí” topbaru při otevření dropdownu --- */
+
+
+/* Aktivní odkaz v offcanvas menu – černý text na světlém podkladu */
+#offcanvasNav .nav-link.active {
+  color: #212529;          /* normální tmavý text */
+  background-color: #e9ecef; /* světle šedé pozadí, jako :hover */
+}
+
+/* Elegantní tmavé stránkování *//* --- Pagination (admin clean) --- */
+.pagination {
+  --pg-text: #212529;        /* základní barva textu */
+  --pg-accent: #0d6efd;      /* aktivní/primary */
+  --pg-border: #dee2e6;      /* okraje */
+  --pg-hover: #f1f3f5;       /* podklad na hover */
+}
+
+.pagination .page-link {
+  color: var(--pg-text) !important;   /* zruší „červené“ přestylování */
+  background-color: #fff;
+  border: 1px solid var(--pg-border);
+  line-height: 1.2;
+}
+
+.pagination .page-link:hover {
+  color: var(--pg-text);
+  background-color: var(--pg-hover);
+  border-color: var(--pg-border);
+  text-decoration: none !important;
+}
+
+.pagination .page-item.active .page-link {
+  color: #fff !important;
+  background-color: var(--pg-accent);
+  border-color: var(--pg-accent);
+}
+
+.pagination .page-item.disabled .page-link {
+  color: #adb5bd !important;
+  background-color: #fff;
+  border-color: var(--pg-border);
+}
+
+/* Focus kroužek jako u Bootstrap tlačítek */
+.pagination .page-link:focus {
+  box-shadow: 0 0 0 0.15rem rgba(13, 110, 253, 0.25);
+}
+
+/* Hezké zaoblení prvního/posledního prvku */
+.pagination .page-item:first-child .page-link {
+  border-top-left-radius: 0.75rem;
+  border-bottom-left-radius: 0.75rem;
+}
+.pagination .page-item:last-child .page-link {
+  border-top-right-radius: 0.75rem;
+  border-bottom-right-radius: 0.75rem;
+}
+
+
+/* Jen čisté textové odkazy v main.content (ne tlačítka, ne nav-linky) */
+main.content a:not(.btn):not(.nav-link):not(.dropdown-item) {
+  color: lab(53.23% 80.11 67.22);            /* tmavý text */
+  text-decoration: none;
+}
+
+main.content a:not(.btn):not(.nav-link):not(.dropdown-item):hover,
+main.content a:not(.btn):not(.nav-link):not(.dropdown-item):focus {
+  color: #7c7c7c;            /* modrá při hoveru */
+  text-decoration: underline;
+}
+
+/* Sjednocení s pictures */
+.card-img-top { object-fit: cover; height: 220px; }
+.editable-title { min-height: 28px; outline: none; border-radius: .5rem; }
+.editable-title:focus { background: rgba(13,110,253,.08); box-shadow: inset 0 0 0 1px rgba(13,110,253,.4); }
+.editable-title.empty { color: #6c757d; font-style: italic; }
+
+/* Badge "Uloženo" – využije tvoje showSavedBadge z footeru */
+.save-badge {
+  position: absolute;
+  right: 8px;
+  top: 8px;
+  background: #198754;
+  color: #fff;
+  padding: .15rem .4rem;
+  border-radius: .4rem;
+  opacity: 0;
+  transform: translateY(-4px);
+  transition: opacity .15s ease, transform .15s ease;
+  font-size: .75rem;
+}
+.save-badge.show { opacity: 1; transform: translateY(0); }
+
+/* sjednocení hoveru jako v menu */
+.navbar .nav-link {
+  padding: 0.5rem 0.75rem;
+}
+
+.navbar .nav-link:hover {
+  background-color: #eef2f7; /* stejné zesvětlení jako v menu */
+  border-radius: .375rem; /* jemné zaoblení */
+}
+
+.sidebar .nav-link:hover,
+.sidebar .nav-link:focus {
+  background-color: #eef2f7 !important; /* stejné zesvětlení jako v menu */
+  border-radius: .375rem; /* jemné zaoblení */
+}
+
+.sidebar .nav-link.active {
+  background-color: #eef2f7; /* stejné zesvětlení jako v menu */
+  border-radius: .375rem; /* jemné zaoblení */
+}
