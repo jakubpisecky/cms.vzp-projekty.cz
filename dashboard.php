@@ -43,7 +43,7 @@ $logs = hasPermission('logs')
 
     <div class="d-flex justify-content-between align-items-center mb-4 flex-wrap gap-3">
         <div>
-            <h1 class="mb-1">Dashboard Kuba</h1>
+            <h1 class="mb-1">Dashboard</h1>
             <p class="text-muted mb-0">Přehled modulů administrace</p>
         </div>
     </div>
