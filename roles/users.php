@@ -67,7 +67,7 @@ while($row = $res->fetch_assoc()) $inRole[(int)$row['user_id']] = true;
 
 include "../includes/header.php";
 ?>
-<div class="container py-4">
+<div class="container-fluid py-4">
   <div class="row">
     <div class="col-12">
 

@@ -63,7 +63,7 @@ include "../includes/header.php";
 $st = $_POST['status'] ?? 'draft';
 ?>
 
-<div class="container py-4">
+<div class="container-fluid py-4">
     <div class="row justify-content-center">
         <div class="col-md-12">
             <h2 class="mb-4">Přidat článek</h2>

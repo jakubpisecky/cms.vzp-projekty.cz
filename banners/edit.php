@@ -53,7 +53,7 @@ if ($dup > 0) $slug .= '-' . $id;
 include "../includes/header.php";
 $st = $banner['status'] ?? 'draft';
 ?>
-<div class="container py-4">
+<div class="container-fluid py-4">
   <h2 class="mb-4">Upravit banner</h2>
   <?php if ($msg): ?><div class="alert alert-danger"><?= e($msg) ?></div><?php endif; ?>
 

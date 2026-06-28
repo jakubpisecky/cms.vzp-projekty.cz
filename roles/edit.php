@@ -59,7 +59,7 @@ while($row = $res->fetch_assoc()) $have[(int)$row['permission_id']] = true;
 
 include "../includes/header.php";
 ?>
-<div class="container py-4">
+<div class="container-fluid py-4">
   <div class="row">
     <div class="col-12">
 

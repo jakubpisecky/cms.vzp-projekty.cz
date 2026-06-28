@@ -35,7 +35,7 @@ if ($_SERVER['REQUEST_METHOD']==='POST') {
 
 include "../includes/header.php";
 ?>
-<div class="container py-4">
+<div class="container-fluid py-4">
   <h2 class="mb-4">Duplikovat jídelníček do data</h2>
   <form method="post" class="bg-white p-4 rounded shadow-sm">
     <div class="row mb-3"><div class="col-md-4">

@@ -1,7 +1,4 @@
 <?php
-/**
- * Vytvoří slug z textu (odstraní diakritiku a převede mezery na pomlčky)
- */
 function slugify(string $text): string {
     $map = [
         'ě'=>'e','š'=>'s','č'=>'c','ř'=>'r','ž'=>'z','ý'=>'y','á'=>'a','í'=>'i','é'=>'e','ú'=>'u','ů'=>'u','ó'=>'o',
@@ -50,6 +47,11 @@ function formatDateCz(?string $datetime): string {
     return date('j. n. Y', strtotime($datetime));
 }
 
+function formatMoneyCz($amount, $currency = 'CZK'): string
+{
+    return number_format((float)$amount, 2, ',', ' ') . ' ' . htmlspecialchars((string)$currency);
+}
+
 require_once __DIR__ . '/permissions.php';
 
 /**
@@ -95,6 +97,7 @@ $PAGE_TEMPLATES = [
     'page'      => 'Obecná stránka',
     'galleries' => 'Fotogalerie',
     'contact'   => 'Kontaktní formulář',
+    'universal'   => 'Univerzální stránka',
 ];
 
 // Pomocná validace; když přijde neznámá šablona, spadne na "page"
@@ -322,4 +325,109 @@ function media_url(string $path, bool $absolute = true): string {
     return $absolute ? (site_url() . $path) : $path;
 }
 
+function generateCzQrPaymentUrl(
+    string $accountNumber,
+    string $bankCode,
+    float $amount,
+    string $currency = 'CZK',
+    string $vs = '',
+    string $message = ''
+): string {
+    $accountNumber = preg_replace('/\s+/', '', trim($accountNumber));
+    $bankCode = preg_replace('/\s+/', '', trim($bankCode));
+    $currency = strtoupper(trim($currency));
+    $vs = preg_replace('/\D+/', '', trim($vs));
 
+    if ($accountNumber === '' || $bankCode === '' || $amount <= 0) {
+        return '';
+    }
+
+    $params = [
+    'accountNumber' => $accountNumber,
+    'bankCode'      => $bankCode,
+    'amount'        => number_format($amount, 2, '.', ''),
+    'currency'      => $currency,
+    'size'          => 180,
+    'branding'      => false,
+    'border'        => 0
+];
+
+    if ($vs !== '') {
+        $params['vs'] = substr($vs, 0, 10);
+    }
+
+    if ($message !== '') {
+        $params['message'] = $message;
+    }
+
+    return 'https://api.paylibo.com/paylibo/generator/czech/image?' . http_build_query($params);
+}
+function imageFileToBase64(string $path): string
+{
+    if ($path === '' || !is_file($path)) {
+        return '';
+    }
+
+    $mime = mime_content_type($path);
+    if (!$mime) {
+        $mime = 'image/png';
+    }
+
+    $data = file_get_contents($path);
+    if ($data === false) {
+        return '';
+    }
+
+    return 'data:' . $mime . ';base64,' . base64_encode($data);
+}
+function czDays(int $days): string
+{
+    if ($days === 1) return '1 den';
+
+    if ($days >= 2 && $days <= 4) {
+        return $days . ' dny';
+    }
+
+    return $days . ' dnů';
+}
+function generateInvoiceNumber(mysqli $conn, string $series = 'FV'): string
+{
+    $seriesConfig = json_decode(setting('invoice_series_prefixes') ?? '{}', true);
+
+    // fallback
+    if (!isset($seriesConfig[$series])) {
+        $seriesConfig[$series] = '{YEAR}-';
+    }
+
+    $prefixTemplate = $seriesConfig[$series];
+
+    $prefix = str_replace(
+        ['{YEAR}', '{YY}'],
+        [date('Y'), date('y')],
+        $prefixTemplate
+    );
+
+    $stmt = $conn->prepare("
+        SELECT invoice_number
+        FROM invoices
+        WHERE series = ?
+          AND invoice_number LIKE CONCAT(?, '%')
+        ORDER BY id DESC
+        LIMIT 1
+    ");
+    $stmt->bind_param("ss", $series, $prefix);
+    $stmt->execute();
+    $res = $stmt->get_result();
+    $last = $res->fetch_assoc();
+    $stmt->close();
+
+    $next = 1;
+
+    if ($last && !empty($last['invoice_number'])) {
+        $lastNumber = preg_replace('/^' . preg_quote($prefix, '/') . '/', '', $last['invoice_number']);
+        $lastNumber = preg_replace('/\D+/', '', $lastNumber);
+        $next = ((int)$lastNumber) + 1;
+    }
+
+    return $prefix . str_pad((string)$next, 3, '0', STR_PAD_LEFT);
+}

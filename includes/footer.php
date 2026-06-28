@@ -6,7 +6,7 @@
 </footer>
 <!-- Dropzone JS -->
 <script src="https://cdn.jsdelivr.net/npm/dropzone@5.9.3/dist/min/dropzone.min.js"></script>
-
+<?php if (isset($galleryId, $csrf)): ?>
 <script>
 // Dropzone neautodetekovat (ručně inicializujeme)
 Dropzone.autoDiscover = false;
@@ -127,14 +127,14 @@ Dropzone.autoDiscover = false;
   function escapeAttr(s){ return escapeHtml(s); }
 })();
 </script>
-
+<?php endif; ?>
 
 <!-- JS knihovny -->
-<script src="../js/functions.js"></script>
+<script src="/js/functions.js"></script>
 <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
-<script src="../js/tinymce/tinymce.min.js"></script>
+<script src="/js/tinymce/tinymce.min.js"></script>
 
 <!-- Modal pro TinyMCE výběr obrázků -->
 <div class="modal fade tinymce-modal" id="editorImageModal" tabindex="-1">
@@ -169,123 +169,139 @@ Dropzone.autoDiscover = false;
 <script>
 document.addEventListener('DOMContentLoaded', function () {
     // Select2
-    $('.select2').select2({ placeholder: "Vyberte položky", width: '100%' });
-
-// === TinyMCE konfigurace ===
-tinymce.init({ 
-  selector: 'textarea.editor',
-  language: 'cs',
-  language_url: '/js/tinymce/langs/cs.js',
-  license_key: 'gpl',
-  promotion: false,  
-  branding: false, 
-
-  plugins: 'link image lists advlist autolink code table autoresize ' +
-           'searchreplace visualblocks fullscreen preview anchor charmap ' +
-           'insertdatetime help wordcount quickbars',
-
-  toolbar: [
-    'undo redo | blocks | bold italic underline strikethrough | ' +
-    'alignleft aligncenter alignright alignjustify | bullist numlist outdent indent | ' +
-    'link image | table | hr charmap | removeformat | searchreplace preview fullscreen | code',
-    'tabledelete tableprops tablerowprops tablecellprops | ' +
-    'tableinsertrowbefore tableinsertrowafter tabledeleterow | ' +
-    'tableinsertcolbefore tableinsertcolafter tabledeletecol'
-  ].join('\n'),
-
-  menubar: 'file edit view insert format table',
-  toolbar_mode: 'sliding',
-
-  block_formats: 'Odstavec=p;Nadpis 1=h1;Nadpis 2=h2;Nadpis 3=h3;Nadpis 4=h4;Nadpis 5=h5;Nadpis 6=h6;Předformátovaný=pre;Citace=blockquote',
-
-  quickbars_selection_toolbar: 'bold italic underline | blocks | quicklink h2 h3 blockquote',
-  quickbars_insert_toolbar: 'image table hr',
-
-  // české formáty pro datum/čas
-  insertdatetime_dateformat: '%d. %m. %Y',
-  insertdatetime_timeformat: '%H:%M:%S',
-  insertdatetime_formats: [
-    '%H:%M', '%H:%M:%S',
-    '%d.%m.%Y', '%d. %m. %Y',
-    '%d. %m. %Y %H:%M',
-    '%d.%m.%Y %H:%M:%S'
-  ],
-
-  file_picker_types: 'image file',
-
-  file_picker_callback: function (callback, value, meta) {
-    window.tinymceActiveCallback = callback;
-
-    const iframe  = document.getElementById('editorImageIframe');
-    const modalEl = document.getElementById('editorImageModal');
-    const titleEl = modalEl ? modalEl.querySelector('.modal-title') : null;
-
-    if (meta.filetype === 'image') {
-      iframe.src = '../pictures/list.php?picker=tinymce';
-      if (titleEl) titleEl.textContent = 'Vložit obrázek';
-    } else {
-      iframe.src = '../documents/list.php?picker=tinymce';
-      if (titleEl) titleEl.textContent = 'Vložit dokument';
+    if (window.jQuery && $.fn.select2) {
+        $('.select2').select2({ placeholder: "Vyberte položky", width: '100%' });
     }
 
-    window._editorImageModal = bootstrap.Modal.getOrCreateInstance(modalEl);
-    window._editorImageModal.show();
-  },
+    // === TinyMCE konfigurace ===
+    if (typeof tinymce !== 'undefined' && document.querySelector('textarea.editor')) {
+        tinymce.init({ 
+            selector: 'textarea.editor',
+            language: 'cs',
+            language_url: '/js/tinymce/langs/cs.js',
+            license_key: 'gpl',
+            promotion: false,  
+            branding: false,
 
-  link_title: true,
-  image_title: true,
-  image_caption: true,
+            plugins: 'link image lists advlist autolink code table autoresize ' +
+                     'searchreplace visualblocks fullscreen preview anchor charmap ' +
+                     'insertdatetime help wordcount quickbars',
 
-  // ponechej jen tyhle tři – nejsou deprecated
-  autoresize_bottom_margin: 20,
-  min_height: 500,
-  max_height: 1000
-});
+            toolbar: [
+                'undo redo | blocks | bold italic underline strikethrough | ' +
+                'alignleft aligncenter alignright alignjustify | bullist numlist outdent indent | ' +
+                'link image | table | hr charmap | removeformat | searchreplace preview fullscreen | code',
+                'tabledelete tableprops tablerowprops tablecellprops | ' +
+                'tableinsertrowbefore tableinsertrowafter tabledeleterow | ' +
+                'tableinsertcolbefore tableinsertcolafter tabledeletecol'
+            ].join('\n'),
 
+            menubar: 'file edit view insert format table',
+            toolbar_mode: 'sliding',
 
+            block_formats: 'Odstavec=p;Nadpis 1=h1;Nadpis 2=h2;Nadpis 3=h3;Nadpis 4=h4;Nadpis 5=h5;Nadpis 6=h6;Předformátovaný=pre;Citace=blockquote',
 
+            quickbars_selection_toolbar: 'bold italic underline | blocks | quicklink h2 h3 blockquote',
+            quickbars_insert_toolbar: 'image table hr',
 
+            insertdatetime_dateformat: '%d. %m. %Y',
+            insertdatetime_timeformat: '%H:%M:%S',
+            insertdatetime_formats: [
+                '%H:%M', '%H:%M:%S',
+                '%d.%m.%Y', '%d. %m. %Y',
+                '%d. %m. %Y %H:%M',
+                '%d.%m.%Y %H:%M:%S'
+            ],
 
+            file_picker_types: 'image file',
+
+            file_picker_callback: function (callback, value, meta) {
+                window.tinymceActiveCallback = callback;
+
+                const iframe  = document.getElementById('editorImageIframe');
+                const modalEl = document.getElementById('editorImageModal');
+                const titleEl = modalEl ? modalEl.querySelector('.modal-title') : null;
+
+                if (!iframe || !modalEl || typeof bootstrap === 'undefined') {
+                    return;
+                }
+
+                if (meta.filetype === 'image') {
+                    iframe.src = '../pictures/list.php?picker=tinymce';
+                    if (titleEl) titleEl.textContent = 'Vložit obrázek';
+                } else {
+                    iframe.src = '../documents/list.php?picker=tinymce';
+                    if (titleEl) titleEl.textContent = 'Vložit dokument';
+                }
+
+                window._editorImageModal = bootstrap.Modal.getOrCreateInstance(modalEl);
+                window._editorImageModal.show();
+            },
+
+            link_title: true,
+            image_title: true,
+            image_caption: true,
+
+            autoresize_bottom_margin: 20,
+            min_height: 500,
+            max_height: 1000
+        });
+    }
 
     // === PŘÍJEM ZPRÁVY Z pictures/list.php (iframe) ===
     window.addEventListener('message', function (e) {
-        // pokud máš knihovnu na jiné doméně, tuhle kontrolu odkomentuj / uprav
-        // if (e.origin !== window.location.origin) return;
-
         const data = e.data || {};
+
         if (data.mceAction === 'chooseImage' && data.url) {
             if (typeof window.tinymceActiveCallback === 'function') {
-                // vyplní pole „Zdroj“ (a alt) v dialogu TinyMCE
                 window.tinymceActiveCallback(data.url, { alt: data.alt || '' });
                 window.tinymceActiveCallback = null;
             }
-            // zavřít modal a vyčistit iframe
+
             const modalEl = document.getElementById('editorImageModal');
-            const modal = bootstrap.Modal.getInstance(modalEl) || new bootstrap.Modal(modalEl);
-            modal.hide();
-            document.getElementById('editorImageIframe').src = 'about:blank';
+            const iframe = document.getElementById('editorImageIframe');
+
+            if (modalEl && typeof bootstrap !== 'undefined') {
+                const modal = bootstrap.Modal.getInstance(modalEl) || new bootstrap.Modal(modalEl);
+                modal.hide();
+            }
+
+            if (iframe) {
+                iframe.src = 'about:blank';
+            }
         }
     }, false);
 
-    // Backdrop třída – lépe po "shown" (ať existuje)
-    document.getElementById('editorImageModal').addEventListener('shown.bs.modal', function () {
-        const bd = document.querySelector('.modal-backdrop');
-        if (bd) bd.classList.add('tinymce-backdrop');
-    });
+    // Backdrop třída – jen pokud modal existuje
+    const editorImageModal = document.getElementById('editorImageModal');
+
+    if (editorImageModal) {
+        editorImageModal.addEventListener('shown.bs.modal', function () {
+            const bd = document.querySelector('.modal-backdrop');
+            if (bd) bd.classList.add('tinymce-backdrop');
+        });
+    }
 });
 </script>
 
 <script src="https://cdn.jsdelivr.net/npm/sortablejs@1.15.0/Sortable.min.js"></script>
 
 <script>
-    const el = document.getElementById('photo-list');
-    new Sortable(el, {
+(function () {
+    const photoListEl = document.getElementById('photo-list');
+
+    if (!photoListEl || typeof Sortable === 'undefined') {
+        return;
+    }
+
+    new Sortable(photoListEl, {
         animation: 150,
-        onEnd: function (evt) {
+        onEnd: function () {
             const order = [];
-            document.querySelectorAll('#photo-list .photo-item').forEach((el, index) => {
+
+            document.querySelectorAll('#photo-list .photo-item').forEach((itemEl, index) => {
                 order.push({
-                    id: el.dataset.id,
+                    id: itemEl.dataset.id,
                     position: index + 1
                 });
             });
@@ -297,6 +313,7 @@ tinymce.init({
             });
         }
     });
+})();
 </script>
 
 <script>
@@ -387,16 +404,16 @@ document.addEventListener('DOMContentLoaded', () => {
 </script>
 
 <script>
-function togglePwd(id) {
+function togglePwd(id, btn) {
   const input = document.getElementById(id);
   if (!input) return;
 
   if (input.type === "password") {
     input.type = "text";
-    event.target.textContent = "Skrýt";
+    if (btn) btn.textContent = "Skrýt";
   } else {
     input.type = "password";
-    event.target.textContent = "Zobrazit";
+    if (btn) btn.textContent = "Zobrazit";
   }
 }
 </script>

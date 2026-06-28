@@ -63,7 +63,7 @@ $q->close();
 
 include "../includes/header.php";
 ?>
-<div class="container py-4">
+<div class="container-fluid py-4">
   <div class="d-flex justify-content-between align-items-center mb-3">
     <h2 class="mb-0">
       Jídelníček &middot; <?= e(date('j. n. Y', strtotime($day['menu_date']))) ?>

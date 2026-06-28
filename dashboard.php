@@ -3,49 +3,31 @@ require_once "includes/auth.php";
 require_once "includes/db.php";
 require_once "includes/functions.php";
 require_once "includes/permissions.php";
+require_once "includes/modules.php";
+
 include "includes/header.php";
 
-$counts = [];
+$dashboardModules = getDashboardAdminModules();
 
-if (hasPermission('pages')) {
-    $counts['pages'] = $conn->query("SELECT COUNT(*) AS c FROM pages")->fetch_assoc()['c'];
-}
-if (hasPermission('articles')) {
-    $counts['articles'] = $conn->query("SELECT COUNT(*) AS c FROM articles")->fetch_assoc()['c'];
-}
-if (hasPermission('categories')) {
-    $counts['categories'] = $conn->query("SELECT COUNT(*) AS c FROM categories")->fetch_assoc()['c'];
-}
-if (hasPermission('documents')) {
-    $counts['documents'] = $conn->query("SELECT COUNT(*) AS c FROM documents")->fetch_assoc()['c'];
-}
-if (hasPermission('banners')) {
-    $counts['banners'] = $conn->query("SELECT COUNT(*) AS c FROM banners")->fetch_assoc()['c'];
-}
-if (hasPermission('pictures')) {
-    $counts['pictures'] = $conn->query("SELECT COUNT(*) AS c FROM pictures")->fetch_assoc()['c'];
-}
-if (hasPermission('galleries')) {
-    $counts['galleries'] = $conn->query("SELECT COUNT(*) AS c FROM galleries")->fetch_assoc()['c'];
-}
-if (hasPermission('visits')) {
-    $counts['visits'] = $conn->query("SELECT COUNT(*) AS c FROM visits")->fetch_assoc()['c'];
-}
-if (hasPermission('contact_messages')) {
-    $counts['contact_messages'] = $conn->query("SELECT COUNT(*) AS c FROM contact_messages")->fetch_assoc()['c'];
-}
-if (hasPermission('menus')) {
-    $counts['menus'] = $conn->query("SELECT COUNT(*) AS c FROM menu_days")->fetch_assoc()['c'];
-}
-if (hasPermission('settings')) {
-    $counts['settings'] = $conn->query("SELECT COUNT(*) AS c FROM settings")->fetch_assoc()['c'];
-}
-if (hasPermission('users')) {
-    $counts['users'] = $conn->query("SELECT COUNT(*) AS c FROM users")->fetch_assoc()['c'];
-    $counts['roles'] = $conn->query("SELECT COUNT(*) AS c FROM roles")->fetch_assoc()['c'];
+function getModuleCount(mysqli $conn, array $module): int
+{
+    if (empty($module['count_query'])) {
+        return 0;
+    }
+
+    try {
+        $res = $conn->query($module['count_query']);
+
+        if ($res && ($row = $res->fetch_row())) {
+            return (int)$row[0];
+        }
+    } catch (Throwable $e) {
+        return 0;
+    }
+
+    return 0;
 }
 
-// Poslední logy jen pokud má oprávnění
 $logs = hasPermission('logs')
     ? $conn->query("
         SELECT l.*, u.email
@@ -57,224 +39,96 @@ $logs = hasPermission('logs')
     : false;
 ?>
 
-<div class="container py-4">
-    <h1 class="mb-4">Dashboard</h1>
+<div class="container-fluid py-4">
 
-    <!-- Dlaždice s odkazy -->
+    <div class="d-flex justify-content-between align-items-center mb-4 flex-wrap gap-3">
+        <div>
+            <h1 class="mb-1">Dashboard</h1>
+            <p class="text-muted mb-0">Přehled modulů administrace</p>
+        </div>
+    </div>
+
     <div class="row g-3 mb-5">
 
-        <?php if (hasPermission('pages')): ?>
-        <div class="col-md-2 col-6">
-            <a href="pages/list.php" class="text-decoration-none text-dark">
-                <div class="card text-center shadow-sm h-100 dashboard-card">
-                    <div class="card-body">
-                        <div class="mb-2 fs-3 text-secondary"><i class="bi bi-layers"></i></div>
-                        <div class="fw-bold">Stránky</div>
-                        <div class="fs-4"><?= $counts['pages'] ?></div>
-                    </div>
-                </div>
-            </a>
-        </div>
-        <?php endif; ?>
+        <?php foreach ($dashboardModules as $module): ?>
+            <?php
+                $count = getModuleCount($conn, $module);
+                $url = ltrim((string)($module['url'] ?? '#'), '/');
+            ?>
 
-        <?php if (hasPermission('articles')): ?>
-        <div class="col-md-2 col-6">
-            <a href="articles/list.php" class="text-decoration-none text-dark">
-                <div class="card text-center shadow-sm h-100 dashboard-card">
-                    <div class="card-body">
-                        <div class="mb-2 fs-3 text-secondary"><i class="bi bi-file-text"></i></div>
-                        <div class="fw-bold">Články</div>
-                        <div class="fs-4"><?= $counts['articles'] ?></div>
-                    </div>
-                </div>
-            </a>
-        </div>
-        <?php endif; ?>
+            <div class="col-xl-2 col-lg-3 col-md-4 col-6">
+                <a href="<?= e($url) ?>" class="text-decoration-none text-dark">
+                    <div class="card text-center shadow-sm h-100 dashboard-card border-0">
+                        <div class="card-body">
+                            <div class="mb-2 fs-3 text-secondary">
+                                <i class="<?= e($module['icon'] ?? 'bi bi-folder') ?>"></i>
+                            </div>
 
-        <?php if (hasPermission('pictures')): ?>
-        <div class="col-md-2 col-6">
-            <a href="pictures/list.php" class="text-decoration-none text-dark">
-                <div class="card text-center shadow-sm h-100 dashboard-card">
-                    <div class="card-body">
-                        <div class="mb-2 fs-3 text-secondary"><i class="bi bi-image"></i></div>
-                        <div class="fw-bold">Obrázky</div>
-                        <div class="fs-4"><?= $counts['pictures'] ?></div>
-                    </div>
-                </div>
-            </a>
-        </div>
-        <?php endif; ?>
+                            <div class="fw-bold">
+                                <?= e($module['title'] ?? '') ?>
+                            </div>
 
-        <?php if (hasPermission('documents')): ?>
-        <div class="col-md-2 col-6">
-            <a href="documents/list.php" class="text-decoration-none text-dark">
-                <div class="card text-center shadow-sm h-100 dashboard-card">
-                    <div class="card-body">
-                        <div class="mb-2 fs-3 text-secondary"><i class="bi bi-file-earmark-arrow-down"></i></div>
-                        <div class="fw-bold">Dokumenty</div>
-                        <div class="fs-4"><?= $counts['documents'] ?></div>
+                            <div class="fs-4">
+                                <?= (int)$count ?>
+                            </div>
+
+                            <?php if (!empty($module['description'])): ?>
+                                <div class="small text-muted mt-1">
+                                    <?= e($module['description']) ?>
+                                </div>
+                            <?php endif; ?>
+                        </div>
                     </div>
-                </div>
-            </a>
-        </div>
-        <?php endif; ?>
-        
-        <?php if (hasPermission('banners')): ?>
-        <div class="col-md-2 col-6">
-            <a href="banners/list.php" class="text-decoration-none text-dark">
-            <div class="card text-center shadow-sm h-100 dashboard-card">
-                <div class="card-body">
-                <div class="mb-2 fs-3 text-secondary"><i class="bi bi-image-alt"></i></div>
-                <div class="fw-bold">Bannery</div>
-                <div class="fs-4"><?= (int)($counts['banners'] ?? 0) ?></div>
+                </a>
+            </div>
+        <?php endforeach; ?>
+
+        <?php if (empty($dashboardModules)): ?>
+            <div class="col-12">
+                <div class="alert alert-info mb-0">
+                    Nemáte dostupné žádné moduly pro dashboard.
                 </div>
             </div>
-            </a>
-        </div>
-        <?php endif; ?>
-
-        <?php if (hasPermission('contact_messages')): ?>
-        <div class="col-md-2 col-6">
-            <a href="contact_messages/index.php" class="text-decoration-none text-dark">
-                <div class="card text-center shadow-sm h-100 dashboard-card">
-                    <div class="card-body">
-                        <div class="mb-2 fs-3 text-secondary"><i class="bi bi-envelope"></i></div>
-                        <div class="fw-bold">Přijaté zprávy</div>
-                        <div class="fs-4"><?= $counts['contact_messages'] ?></div>
-                    </div>
-                </div>
-            </a>
-        </div>
-        <?php endif; ?>
-
-        <?php if (hasPermission('visits')): ?>
-        <div class="col-md-2 col-6">
-            <a href="visits/list.php" class="text-decoration-none text-dark">
-                <div class="card text-center shadow-sm h-100 dashboard-card">
-                    <div class="card-body">
-                        <div class="mb-2 fs-3 text-secondary"><i class="bi bi-graph-up"></i></div>
-                        <div class="fw-bold">Návštěvy</div>
-                        <div class="fs-4"><?= $counts['visits'] ?></div>
-                    </div>
-                </div>
-            </a>
-        </div>
-        <?php endif; ?>
-
-        <?php if (hasPermission('menus')): ?>
-        <div class="col-md-2 col-6">
-            <a href="menus/list.php" class="text-decoration-none text-dark">
-                <div class="card text-center shadow-sm h-100 dashboard-card">
-                    <div class="card-body">
-                        <div class="mb-2 fs-3 text-secondary"><i class="bi bi-card-checklist"></i></div>
-                        <div class="fw-bold">Jídelníčky</div>
-                        <div class="fs-4"><?= $counts['menus'] ?></div>
-                    </div>
-                </div>
-            </a>
-        </div>
-        <?php endif; ?>
-
-        <?php if (hasPermission('galleries')): ?>
-        <div class="col-md-2 col-6">
-            <a href="galleries/list.php" class="text-decoration-none text-dark">
-                <div class="card text-center shadow-sm h-100 dashboard-card">
-                    <div class="card-body">
-                        <div class="mb-2 fs-3 text-secondary"><i class="bi bi-collection"></i></div>
-                        <div class="fw-bold">Fotogalerie</div>
-                        <div class="fs-4"><?= $counts['galleries'] ?></div>
-                    </div>
-                </div>
-            </a>
-        </div>
-        <?php endif; ?>
-
-        <?php if (hasPermission('categories')): ?>
-        <div class="col-md-2 col-6">
-            <a href="categories/list.php" class="text-decoration-none text-dark">
-                <div class="card text-center shadow-sm h-100 dashboard-card">
-                    <div class="card-body">
-                        <div class="mb-2 fs-3 text-secondary"><i class="bi bi-tags"></i></div>
-                        <div class="fw-bold">Kategorie</div>
-                        <div class="fs-4"><?= $counts['categories'] ?></div>
-                    </div>
-                </div>
-            </a>
-        </div>
-        <?php endif; ?>
-
-
-        <?php if (hasPermission('settings')): ?>
-        <div class="col-md-2 col-6">
-            <a href="settings/index.php" class="text-decoration-none text-dark">
-                <div class="card text-center shadow-sm h-100 dashboard-card">
-                    <div class="card-body">
-                        <div class="mb-2 fs-3 text-secondary"><i class="bi bi-gear"></i></div>
-                        <div class="fw-bold">Nastavení webu</div>
-                        <div class="fs-4"><?= $counts['settings'] ?></div>
-                    </div>
-                </div>
-            </a>
-        </div>
-        <?php endif; ?>
-
-        <?php if (hasPermission('users')): ?>
-        <div class="col-md-2 col-6">
-            <a href="users/list.php" class="text-decoration-none text-dark">
-                <div class="card text-center shadow-sm h-100 dashboard-card">
-                    <div class="card-body">
-                        <div class="mb-2 fs-3 text-secondary"><i class="bi bi-people"></i></div>
-                        <div class="fw-bold">Uživatelé</div>
-                        <div class="fs-4"><?= $counts['users'] ?></div>
-                    </div>
-                </div>
-            </a>
-        </div>
-        <?php endif; ?>
-
-        <?php if (hasPermission('users')): ?>
-        <div class="col-md-2 col-6">
-            <a href="roles/list.php" class="text-decoration-none text-dark">
-                <div class="card text-center shadow-sm h-100 dashboard-card">
-                    <div class="card-body">
-                        <div class="mb-2 fs-3 text-secondary"><i class="bi bi-shield-lock"></i></div>
-                        <div class="fw-bold">Role a nastavení</div>
-                        <div class="fs-4"><?= $counts['roles'] ?></div>
-                    </div>
-                </div>
-            </a>
-        </div>
         <?php endif; ?>
 
     </div>
 
-    <!-- Poslední akce -->
     <?php if ($logs): ?>
-    <div class="d-flex justify-content-between align-items-center mb-3">
-        <h3 class="mb-0">Poslední akce</h3>
-        <a href="logs/list.php" class="btn btn-sm btn-outline-secondary">Zobrazit všechny logy</a>
-    </div>
-    <table class="table table-striped table-bordered bg-white shadow-sm">
-        <thead>
-            <tr>
-                <th width="60">ID</th>
-                <th>Uživatel</th>
-                <th>Akce</th>
-                <th width="180">Čas</th>
-            </tr>
-        </thead>
-        <tbody>
-        <?php while($l = $logs->fetch_assoc()): ?>
-            <tr>
-                <td><?= $l['id'] ?></td>
-                <td><?= htmlspecialchars($l['email'] ?? 'Systém') ?></td>
-                <td><?= htmlspecialchars($l['action']) ?></td>
-                <td><?= formatDateTimeCz($l['created_at']) ?></td>
-            </tr>
-        <?php endwhile; ?>
-        </tbody>
-    </table>
+        <div class="d-flex justify-content-between align-items-center mb-3 flex-wrap gap-2">
+            <h3 class="mb-0">Poslední akce</h3>
+
+            <a href="logs/list.php" class="btn btn-sm btn-outline-secondary">
+                Zobrazit všechny logy
+            </a>
+        </div>
+
+        <div class="card shadow-sm border-0">
+            <div class="table-responsive">
+                <table class="table table-bordered table-striped table-hover align-middle mb-0 bg-white">
+                    <thead class="table-light">
+                        <tr>
+                            <th width="70" class="text-center">ID</th>
+                            <th width="240">Uživatel</th>
+                            <th>Akce</th>
+                            <th width="180">Čas</th>
+                        </tr>
+                    </thead>
+
+                    <tbody>
+                        <?php while ($l = $logs->fetch_assoc()): ?>
+                            <tr>
+                                <td class="text-center"><?= (int)$l['id'] ?></td>
+                                <td><?= e($l['email'] ?? 'Systém') ?></td>
+                                <td><?= e($l['action'] ?? '') ?></td>
+                                <td class="text-nowrap"><?= e(formatDateTimeCz($l['created_at'])) ?></td>
+                            </tr>
+                        <?php endwhile; ?>
+                    </tbody>
+                </table>
+            </div>
+        </div>
     <?php endif; ?>
+
 </div>
 
 <?php include "includes/footer.php"; ?>

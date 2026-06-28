@@ -304,3 +304,59 @@ main.content a:not(.btn):not(.nav-link):not(.dropdown-item):focus {
   background-color: #eef2f7; /* stejné zesvětlení jako v menu */
   border-radius: .375rem; /* jemné zaoblení */
 }
+/* =========================
+   HEADERY STRÁNEK ADMINU
+========================= */
+
+.admin-page-header-content {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 1rem;
+}
+
+/* mobil */
+@media (max-width: 991.98px) {
+
+    .admin-page-header-content {
+        flex-direction: column;
+        align-items: stretch;
+    }
+}
+
+/* =========================
+   RESPONZIVNÍ AKCE
+========================= */
+
+.responsive-actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: .5rem;
+}
+
+.responsive-actions .btn {
+    white-space: nowrap;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+}
+
+/* tablet */
+@media (max-width: 991.98px) {
+
+    .responsive-actions {
+        width: 100%;
+    }
+
+    .responsive-actions .btn {
+        flex: 1 1 calc(50% - .5rem);
+    }
+}
+
+/* mobil */
+@media (max-width: 575.98px) {
+
+    .responsive-actions .btn {
+        flex: 1 1 100%;
+    }
+}

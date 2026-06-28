@@ -92,7 +92,7 @@ include "../includes/header.php";
 $st = $article['status'] ?? 'draft';
 ?>
 
-<div class="container py-4">
+<div class="container-fluid py-4">
     <div class="row justify-content-center">
         <div class="col-md-12">
             <h2 class="mb-4">Upravit článek</h2>
@@ -172,13 +172,27 @@ $st = $article['status'] ?? 'draft';
                 </div>
 
                 <div class="d-flex justify-content-between">
-                    <button class="btn btn-success">
-                        <i class="bi bi-save me-1"></i> Uložit
-                    </button>
+
+                    <div class="d-flex gap-2">
+                        <button class="btn btn-success">
+                            <i class="bi bi-save me-1"></i>
+                            Uložit změny
+                        </button>
+
+                                                    <a href="blocks.php?id=<?= (int)$id ?>" class="btn btn-primary">
+                                <i class="bi bi-layout-three-columns me-1"></i>
+                                Správa bloků
+                            </a>
+                                            </div>
+
                     <a href="list.php" class="btn btn-secondary">
-                        <i class="bi bi-arrow-left me-1"></i> Zpět
+                        <i class="bi bi-arrow-left me-1"></i>
+                        Zpět
                     </a>
+
                 </div>
+
+
             </form>
         </div>
     </div>

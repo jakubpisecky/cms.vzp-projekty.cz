@@ -24,7 +24,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 include "../includes/header.php";
 ?>
 
-<div class="container py-4">
+<div class="container-fluid py-4">
     <h2 class="mb-4">Přidat návštěvu</h2>
 
     <?php if (!empty($msg)): ?>

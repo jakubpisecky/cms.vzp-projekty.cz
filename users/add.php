@@ -75,7 +75,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
 include "../includes/header.php";
 ?>
-<div class="container py-4">
+<div class="container-fluid py-4">
     <div class="d-flex justify-content-between align-items-center mb-3">
         <h2 class="mb-0">Přidat uživatele</h2>
     </div>

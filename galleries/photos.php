@@ -34,7 +34,7 @@ $photos = $stmt->get_result();
 
 include "../includes/header.php";
 ?>
-<div class="container py-4">
+<div class="container-fluid py-4">
     <h2 class="mb-4">Fotky v&nbsp;galerii: <?= htmlspecialchars($gallery['title']) ?></h2>
 
     <div class="mb-3 d-flex gap-2">

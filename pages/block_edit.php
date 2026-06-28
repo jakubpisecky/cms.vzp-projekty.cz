@@ -1,0 +1,339 @@
+<?php
+require_once "../includes/auth.php";
+require_once "../includes/db.php";
+require_once "../includes/functions.php";
+require_once "../includes/settings_helpers.php";
+
+requirePermission('pages');
+
+$id = intval($_GET['id'] ?? 0);
+
+if ($id <= 0) {
+    header("Location: list.php");
+    exit;
+}
+
+$stmt = $conn->prepare("
+    SELECT 
+        pb.*,
+        p.title AS page_title,
+        p.template AS page_template,
+        bt.name AS block_type_name,
+        bt.icon AS block_type_icon
+    FROM page_blocks pb
+    INNER JOIN pages p ON pb.page_id = p.id
+    LEFT JOIN block_types bt ON pb.type = bt.type
+    WHERE pb.id = ?
+    LIMIT 1
+");
+$stmt->bind_param("i", $id);
+$stmt->execute();
+$block = $stmt->get_result()->fetch_assoc();
+$stmt->close();
+
+if (!$block) {
+    header("Location: list.php");
+    exit;
+}
+
+if (!in_array($block['page_template'], ['home', 'universal'], true)) {
+    header("Location: edit.php?id=" . (int)$block['page_id']);
+    exit;
+}
+
+$errors = [];
+
+$title = $block['title'] ?? '';
+$subtitle = $block['subtitle'] ?? '';
+$content = $block['content'] ?? '';
+$image = $block['image'] ?? '';
+$button_text = $block['button_text'] ?? '';
+$button_url = $block['button_url'] ?? '';
+$gallery_id = (int)($block['gallery_id'] ?? 0);
+$article_limit = (int)($block['article_limit'] ?? 3);
+$layout = $block['layout'] ?? '';
+$section_class = $block['section_class'] ?? '';
+$sort_order = (int)($block['sort_order'] ?? 10);
+$is_active = (int)($block['is_active'] ?? 1);
+$images = $block['images'] ?? '';
+$image_position = $block['image_position'] ?? 'right';
+$col1_icon = $block['col1_icon'] ?? '';
+$col1_kicker = $block['col1_kicker'] ?? '';
+$col1_title = $block['col1_title'] ?? '';
+$col1_text = $block['col1_text'] ?? '';
+
+$col2_icon = $block['col2_icon'] ?? '';
+$col2_kicker = $block['col2_kicker'] ?? '';
+$col2_title = $block['col2_title'] ?? '';
+$col2_text = $block['col2_text'] ?? '';
+
+$col3_icon = $block['col3_icon'] ?? '';
+$col3_kicker = $block['col3_kicker'] ?? '';
+$col3_title = $block['col3_title'] ?? '';
+$col3_text = $block['col3_text'] ?? '';
+
+if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+
+    $title = trim($_POST['title'] ?? '');
+    $subtitle = trim($_POST['subtitle'] ?? '');
+    $content = $_POST['content'] ?? '';
+    $image = trim($_POST['image'] ?? '');
+    $button_text = trim($_POST['button_text'] ?? '');
+    $button_url = trim($_POST['button_url'] ?? '');
+    $gallery_id = intval($_POST['gallery_id'] ?? 0);
+    $article_limit = intval($_POST['article_limit'] ?? 0);
+    $layout = trim($_POST['layout'] ?? '');
+    $section_class = trim($_POST['section_class'] ?? '');
+    $sort_order = intval($_POST['sort_order'] ?? 0);
+    $is_active = isset($_POST['is_active']) ? 1 : 0;
+    $imagesPost = $_POST['images'] ?? '';
+    $image_position = trim($_POST['image_position'] ?? 'right');
+    if (!in_array($image_position, ['left', 'right'], true)) {
+        $image_position = 'right';
+    }
+    $col1_icon = trim($_POST['col1_icon'] ?? '');
+    $col1_kicker = trim($_POST['col1_kicker'] ?? '');
+    $col1_title = trim($_POST['col1_title'] ?? '');
+    $col1_text = $_POST['col1_text'] ?? '';
+
+    $col2_icon = trim($_POST['col2_icon'] ?? '');
+    $col2_kicker = trim($_POST['col2_kicker'] ?? '');
+    $col2_title = trim($_POST['col2_title'] ?? '');
+    $col2_text = $_POST['col2_text'] ?? '';
+
+    $col3_icon = trim($_POST['col3_icon'] ?? '');
+    $col3_kicker = trim($_POST['col3_kicker'] ?? '');
+    $col3_title = trim($_POST['col3_title'] ?? '');
+    $col3_text = $_POST['col3_text'] ?? '';
+
+    $allowedSectionClasses = ['', 'bg-light', 'bg-light-5', 'bg-primary', 'bg-dark'];
+
+    if (!in_array($section_class, $allowedSectionClasses, true)) {
+        $section_class = '';
+    }
+
+    if (is_array($imagesPost)) {
+        $imagesArr = array_filter(array_map('trim', $imagesPost));
+        $images = implode(';', $imagesArr);
+    } else {
+        $images = trim($imagesPost);
+    }
+
+    if ($title === '') {
+        $title = $block['block_type_name'] ?: $block['type'];
+    }
+
+    if ($block['type'] === 'text' && trim(strip_tags($content)) === '') {
+        $errors[] = 'Vyplňte obsah textového bloku.';
+    }
+
+    if ($block['type'] === 'latest_articles' && $article_limit <= 0) {
+        $article_limit = 3;
+    }
+
+    if (!$errors) {
+        $stmt = $conn->prepare("
+            UPDATE page_blocks
+            SET title = ?,
+                subtitle = ?,
+                content = ?,
+                image = ?,
+                image_position = ?,
+                images = ?,
+                button_text = ?,
+                button_url = ?,
+                gallery_id = ?,
+                article_limit = ?,
+                layout = ?,
+                section_class = ?,
+                col1_icon = ?,
+                col1_kicker = ?,
+                col1_title = ?,
+                col1_text = ?,
+                col2_icon = ?,
+                col2_kicker = ?,
+                col2_title = ?,
+                col2_text = ?,
+                col3_icon = ?,
+                col3_kicker = ?,
+                col3_title = ?,
+                col3_text = ?,
+                sort_order = ?,
+                is_active = ?
+            WHERE id = ?
+            LIMIT 1
+        ");
+
+        $stmt->bind_param(
+            "ssssssssiissssssssssssssiii",
+            $title,
+            $subtitle,
+            $content,
+            $image,
+            $image_position,
+            $images,
+            $button_text,
+            $button_url,
+            $gallery_id,
+            $article_limit,
+            $layout,
+            $section_class,
+            $col1_icon,
+            $col1_kicker,
+            $col1_title,
+            $col1_text,
+            $col2_icon,
+            $col2_kicker,
+            $col2_title,
+            $col2_text,
+            $col3_icon,
+            $col3_kicker,
+            $col3_title,
+            $col3_text,
+            $sort_order,
+            $is_active,
+            $id
+        );
+
+        $stmt->execute();
+        $stmt->close();
+
+        logAction("Upraven blok '$title' na stránce '{$block['page_title']}'");
+
+        header("Location: blocks.php?page_id=" . (int)$block['page_id'] . "&updated=1");
+        exit;
+    }
+}
+
+include "../includes/header.php";
+?>
+
+<div class="container-fluid py-4">
+
+    <div class="admin-page-header-content mb-4">
+        <div>
+            <h2 class="mb-1">Upravit blok</h2>
+            <p class="text-muted mb-0">
+                <?= e($block['page_title']) ?>
+                —
+                <?= e($block['block_type_name'] ?: $block['type']) ?>
+            </p>
+        </div>
+
+        <a href="blocks.php?page_id=<?= (int)$block['page_id'] ?>" class="btn btn-outline-secondary">
+            <i class="bi bi-arrow-left me-1"></i> Zpět na bloky
+        </a>
+    </div>
+
+    <?php if (isset($_GET['created'])): ?>
+        <div class="alert alert-success">
+            Blok byl vytvořen. Nyní jej můžete nastavit.
+        </div>
+    <?php endif; ?>
+
+    <?php if ($errors): ?>
+        <div class="alert alert-danger">
+            <?php foreach ($errors as $error): ?>
+                <div><?= e($error) ?></div>
+            <?php endforeach; ?>
+        </div>
+    <?php endif; ?>
+
+    <div class="card shadow-sm border-0">
+        <div class="card-body">
+
+            <form method="post">
+
+                <div class="row">
+                    <div class="col-lg-12">
+
+                        <div class="alert alert-light border">
+                            <?php if (!empty($block['block_type_icon'])): ?>
+                                <i class="<?= e($block['block_type_icon']) ?> me-1"></i>
+                            <?php endif; ?>
+
+                            <strong><?= e($block['block_type_name'] ?: $block['type']) ?></strong>
+
+                            <div class="text-muted small mt-1">
+                                Typ bloku: <code><?= e($block['type']) ?></code>
+                            </div>
+                        </div>
+
+                        <?php
+                        $formFile = __DIR__ . "/block_forms/" . $block['type'] . ".php";
+
+                        if (is_file($formFile)) {
+                            include $formFile;
+                        } else {
+                            include __DIR__ . "/block_forms/default.php";
+                        }
+                        ?>
+
+                        <hr class="my-4">
+
+                        <div class="mb-3">
+                            <label class="form-label">Pozadí sekce</label>
+
+                            <select name="section_class" class="form-select">
+                                <option value="" <?= $section_class === '' ? 'selected' : '' ?>>
+                                    Bez pozadí
+                                </option>
+
+                                <option value="bg-light" <?= $section_class === 'bg-light' ? 'selected' : '' ?>>
+                                    Světlé
+                                </option>
+
+                                <option value="bg-light-5" <?= $section_class === 'bg-light-5' ? 'selected' : '' ?>>
+                                    Velmi světlé
+                                </option>
+
+                                <option value="bg-primary" <?= $section_class === 'bg-primary' ? 'selected' : '' ?>>
+                                    Primární
+                                </option>
+
+                                <option value="bg-dark" <?= $section_class === 'bg-dark' ? 'selected' : '' ?>>
+                                    Tmavé
+                                </option>
+                            </select>
+                        </div>
+
+                        <div class="mb-3">
+                            <label class="form-label">Pořadí</label>
+                            <input type="number"
+                                   name="sort_order"
+                                   class="form-control"
+                                   value="<?= (int)$sort_order ?>">
+                        </div>
+
+                        <div class="form-check form-switch mb-4">
+                            <input class="form-check-input"
+                                   type="checkbox"
+                                   name="is_active"
+                                   id="is_active"
+                                   value="1"
+                                   <?= $is_active ? 'checked' : '' ?>>
+
+                            <label class="form-check-label" for="is_active">
+                                Aktivní
+                            </label>
+                        </div>
+
+                        <button type="submit" class="btn btn-primary">
+                            <i class="bi bi-save me-1"></i> Uložit blok
+                        </button>
+
+                        <a href="blocks.php?page_id=<?= (int)$block['page_id'] ?>" class="btn btn-outline-secondary">
+                            Zrušit
+                        </a>
+
+                    </div>
+                </div>
+
+            </form>
+
+        </div>
+    </div>
+
+</div>
+
+<?php include "../includes/footer.php"; ?>
