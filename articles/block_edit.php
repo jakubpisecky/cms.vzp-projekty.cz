@@ -50,10 +50,22 @@ $images = $block['images'] ?? '';
 $button_text = $block['button_text'] ?? '';
 $button_url = $block['button_url'] ?? '';
 $gallery_id = (int)($block['gallery_id'] ?? 0);
+$article_limit = (int)($block['article_limit'] ?? 3);
+$source_type = $block['source_type'] ?? 'manual';
+$category_ids = $block['category_ids'] ?? '';
+$article_order = $block['article_order'] ?? 'newest';
 $layout = $block['layout'] ?? '';
 $section_class = $block['section_class'] ?? '';
 $sort_order = (int)($block['sort_order'] ?? 10);
 $is_active = (int)($block['is_active'] ?? 1);
+
+if (!in_array($source_type, ['manual', 'category'], true)) {
+    $source_type = 'manual';
+}
+
+if (!in_array($article_order, ['newest', 'oldest', 'random'], true)) {
+    $article_order = 'newest';
+}
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
@@ -66,16 +78,35 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $button_text = trim($_POST['button_text'] ?? '');
     $button_url = trim($_POST['button_url'] ?? '');
     $gallery_id = intval($_POST['gallery_id'] ?? 0);
+    $article_limit = intval($_POST['article_limit'] ?? 0);
+
+    $source_type = trim($_POST['source_type'] ?? 'manual');
+    $categoryIdsPost = $_POST['category_ids'] ?? [];
+    $article_order = trim($_POST['article_order'] ?? 'newest');
+
+    if (!in_array($source_type, ['manual', 'category'], true)) {
+        $source_type = 'manual';
+    }
+
+    if (!in_array($article_order, ['newest', 'oldest', 'random'], true)) {
+        $article_order = 'newest';
+    }
+
+    if (is_array($categoryIdsPost)) {
+        $categoryIdsArr = array_filter(array_map('intval', $categoryIdsPost));
+        $category_ids = implode(';', $categoryIdsArr);
+    } else {
+        $category_ids = '';
+    }
+
+    if ($article_limit <= 0) {
+        $article_limit = 3;
+    }
+
     $layout = trim($_POST['layout'] ?? '');
     $section_class = trim($_POST['section_class'] ?? '');
     $sort_order = intval($_POST['sort_order'] ?? 0);
     $is_active = isset($_POST['is_active']) ? 1 : 0;
-    $relatedArticles = $_POST['related_articles'] ?? [];
-    if (!is_array($relatedArticles)) {
-        $relatedArticles = [];
-    }
-    $relatedArticles = array_map('intval', $relatedArticles);
-    $relatedArticles = array_filter($relatedArticles);
 
     if (!in_array($image_position, ['left', 'right'], true)) {
         $image_position = 'right';
@@ -114,6 +145,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 button_text = ?,
                 button_url = ?,
                 gallery_id = ?,
+                article_limit = ?,
+                source_type = ?,
+                category_ids = ?,
+                article_order = ?,
                 layout = ?,
                 section_class = ?,
                 sort_order = ?,
@@ -123,7 +158,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         ");
 
         $stmt->bind_param(
-            "ssssssssissiii",
+            "ssssssssiisssssiii",
             $title,
             $subtitle,
             $content,
@@ -133,6 +168,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $button_text,
             $button_url,
             $gallery_id,
+            $article_limit,
+            $source_type,
+            $category_ids,
+            $article_order,
             $layout,
             $section_class,
             $sort_order,
@@ -143,38 +182,16 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $stmt->execute();
         $stmt->close();
 
-// Související články
-if ($block['type'] === 'related_articles') {
+        $saveFile = __DIR__ . "/../pages/block_forms/" . $block['type'] . "_save.php";
 
-    $stmt = $conn->prepare("
-        DELETE FROM article_block_related
-        WHERE block_id = ?
-    ");
-    $stmt->bind_param("i", $id);
-    $stmt->execute();
-    $stmt->close();
-
-    if (!empty($relatedArticles)) {
-        $stmt = $conn->prepare("
-            INSERT INTO article_block_related
-                (block_id, article_id)
-            VALUES
-                (?, ?)
-        ");
-
-        foreach ($relatedArticles as $relatedArticleId) {
-            $stmt->bind_param("ii", $id, $relatedArticleId);
-            $stmt->execute();
+        if (is_file($saveFile)) {
+            include $saveFile;
         }
 
-        $stmt->close();
-    }
-}
+        logAction("Upraven blok '$title' u článku '{$block['article_title']}'");
 
-logAction("Upraven blok '$title' u článku '{$block['article_title']}'");
-
-header("Location: blocks.php?id=" . (int)$block['article_id'] . "&updated=1");
-exit;
+        header("Location: blocks.php?id=" . (int)$block['article_id'] . "&updated=1");
+        exit;
     }
 }
 

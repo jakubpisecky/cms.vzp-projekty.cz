@@ -51,12 +51,16 @@ $button_text = $block['button_text'] ?? '';
 $button_url = $block['button_url'] ?? '';
 $gallery_id = (int)($block['gallery_id'] ?? 0);
 $article_limit = (int)($block['article_limit'] ?? 3);
+$source_type = $block['source_type'] ?? 'manual';
+$category_ids = $block['category_ids'] ?? '';
+$article_order = $block['article_order'] ?? 'newest';
 $layout = $block['layout'] ?? '';
 $section_class = $block['section_class'] ?? '';
 $sort_order = (int)($block['sort_order'] ?? 10);
 $is_active = (int)($block['is_active'] ?? 1);
 $images = $block['images'] ?? '';
 $image_position = $block['image_position'] ?? 'right';
+
 $col1_icon = $block['col1_icon'] ?? '';
 $col1_kicker = $block['col1_kicker'] ?? '';
 $col1_title = $block['col1_title'] ?? '';
@@ -72,6 +76,14 @@ $col3_kicker = $block['col3_kicker'] ?? '';
 $col3_title = $block['col3_title'] ?? '';
 $col3_text = $block['col3_text'] ?? '';
 
+if (!in_array($source_type, ['manual', 'category'], true)) {
+    $source_type = 'manual';
+}
+
+if (!in_array($article_order, ['newest', 'oldest', 'random'], true)) {
+    $article_order = 'newest';
+}
+
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
     $title = trim($_POST['title'] ?? '');
@@ -82,15 +94,41 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $button_url = trim($_POST['button_url'] ?? '');
     $gallery_id = intval($_POST['gallery_id'] ?? 0);
     $article_limit = intval($_POST['article_limit'] ?? 0);
+
+    $source_type = trim($_POST['source_type'] ?? 'manual');
+    $categoryIdsPost = $_POST['category_ids'] ?? [];
+    $article_order = trim($_POST['article_order'] ?? 'newest');
+
+    if (!in_array($source_type, ['manual', 'category'], true)) {
+        $source_type = 'manual';
+    }
+
+    if (!in_array($article_order, ['newest', 'oldest', 'random'], true)) {
+        $article_order = 'newest';
+    }
+
+    if (is_array($categoryIdsPost)) {
+        $categoryIdsArr = array_filter(array_map('intval', $categoryIdsPost));
+        $category_ids = implode(';', $categoryIdsArr);
+    } else {
+        $category_ids = '';
+    }
+
+    if ($article_limit <= 0) {
+        $article_limit = 3;
+    }
+
     $layout = trim($_POST['layout'] ?? '');
     $section_class = trim($_POST['section_class'] ?? '');
     $sort_order = intval($_POST['sort_order'] ?? 0);
     $is_active = isset($_POST['is_active']) ? 1 : 0;
     $imagesPost = $_POST['images'] ?? '';
     $image_position = trim($_POST['image_position'] ?? 'right');
+
     if (!in_array($image_position, ['left', 'right'], true)) {
         $image_position = 'right';
     }
+
     $col1_icon = trim($_POST['col1_icon'] ?? '');
     $col1_kicker = trim($_POST['col1_kicker'] ?? '');
     $col1_title = trim($_POST['col1_title'] ?? '');
@@ -127,10 +165,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $errors[] = 'Vyplňte obsah textového bloku.';
     }
 
-    if ($block['type'] === 'latest_articles' && $article_limit <= 0) {
-        $article_limit = 3;
-    }
-
     if (!$errors) {
         $stmt = $conn->prepare("
             UPDATE page_blocks
@@ -144,6 +178,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 button_url = ?,
                 gallery_id = ?,
                 article_limit = ?,
+                source_type = ?,
+                category_ids = ?,
+                article_order = ?,
                 layout = ?,
                 section_class = ?,
                 col1_icon = ?,
@@ -165,7 +202,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         ");
 
         $stmt->bind_param(
-            "ssssssssiissssssssssssssiii",
+            "sssssssssssssssssssssssssssiii",
             $title,
             $subtitle,
             $content,
@@ -176,6 +213,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $button_url,
             $gallery_id,
             $article_limit,
+            $source_type,
+            $category_ids,
+            $article_order,
             $layout,
             $section_class,
             $col1_icon,
@@ -197,6 +237,12 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
         $stmt->execute();
         $stmt->close();
+
+        $saveFile = __DIR__ . "/block_forms/" . $block['type'] . "_save.php";
+
+        if (is_file($saveFile)) {
+            include $saveFile;
+        }
 
         logAction("Upraven blok '$title' na stránce '{$block['page_title']}'");
 
