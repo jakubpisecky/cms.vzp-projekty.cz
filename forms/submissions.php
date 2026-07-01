@@ -51,7 +51,6 @@ include "../includes/header.php";
     </div>
 
     <div class="card shadow-sm border-0">
-        <div class="card-body">
 
             <?php if ($submissions->num_rows === 0): ?>
                 <div class="text-center text-muted py-5">
@@ -60,13 +59,13 @@ include "../includes/header.php";
             <?php else: ?>
 
                 <div class="table-responsive">
-                    <table class="table table-hover align-middle mb-0">
+                    <table class="table table-bordered table-striped table-hover align-middle mb-0 bg-white">
                         <thead>
                             <tr>
                                 <th>Datum</th>
                                 <th>IP adresa</th>
                                 <th>Stav</th>
-                                <th class="text-end">Akce</th>
+                                <th class="text-center">Akce</th>
                             </tr>
                         </thead>
                         <tbody>
@@ -93,7 +92,7 @@ include "../includes/header.php";
 
             <?php endif; ?>
 
-        </div>
+       
     </div>
 
 </div>
