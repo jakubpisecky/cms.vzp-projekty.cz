@@ -50,6 +50,7 @@ $images = $block['images'] ?? '';
 $button_text = $block['button_text'] ?? '';
 $button_url = $block['button_url'] ?? '';
 $gallery_id = (int)($block['gallery_id'] ?? 0);
+$form_id = intval($_POST['form_id'] ?? 0);
 $article_limit = (int)($block['article_limit'] ?? 3);
 $source_type = $block['source_type'] ?? 'manual';
 $category_ids = $block['category_ids'] ?? '';
@@ -78,6 +79,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $button_text = trim($_POST['button_text'] ?? '');
     $button_url = trim($_POST['button_url'] ?? '');
     $gallery_id = intval($_POST['gallery_id'] ?? 0);
+    $form_id = intval($_POST['form_id'] ?? 0);
     $article_limit = intval($_POST['article_limit'] ?? 0);
 
     $source_type = trim($_POST['source_type'] ?? 'manual');
@@ -145,6 +147,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 button_text = ?,
                 button_url = ?,
                 gallery_id = ?,
+                form_id = ?,
                 article_limit = ?,
                 source_type = ?,
                 category_ids = ?,
@@ -158,7 +161,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         ");
 
         $stmt->bind_param(
-            "ssssssssiisssssiii",
+            "ssssssssiiisssssiii",
             $title,
             $subtitle,
             $content,
@@ -168,6 +171,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $button_text,
             $button_url,
             $gallery_id,
+            $form_id,
             $article_limit,
             $source_type,
             $category_ids,
