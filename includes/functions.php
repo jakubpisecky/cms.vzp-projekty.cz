@@ -431,3 +431,139 @@ function generateInvoiceNumber(mysqli $conn, string $series = 'FV'): string
 
     return $prefix . str_pad((string)$next, 3, '0', STR_PAD_LEFT);
 }
+function mailer_from_settings(): ?\PHPMailer\PHPMailer\PHPMailer
+{
+    if (!class_exists(\PHPMailer\PHPMailer\PHPMailer::class)) {
+        require_once __DIR__ . '/php-mailer/src/Exception.php';
+        require_once __DIR__ . '/php-mailer/src/PHPMailer.php';
+        require_once __DIR__ . '/php-mailer/src/SMTP.php';
+    }
+
+    if (!class_exists(\PHPMailer\PHPMailer\PHPMailer::class)) {
+        return null;
+    }
+
+    $mail = new \PHPMailer\PHPMailer\PHPMailer(true);
+
+    $mail->CharSet = 'UTF-8';
+    $mail->Encoding = 'base64';
+
+    $smtpEnabled = (int)setting('smtp_enabled', 0) === 1;
+
+    $host = trim((string)setting('smtp_host', 'localhost'));
+    $port = (int)setting('smtp_port', 25);
+    $secure = strtolower(trim((string)setting('smtp_secure', 'none')));
+
+    $username = trim((string)setting('smtp_username', ''));
+    $password = (string)setting('smtp_password', '');
+
+    $authType = strtolower(trim((string)setting('smtp_auth_type', '')));
+    $timeout = (int)setting('smtp_timeout', 15);
+
+    $allowSelfSigned = (int)setting('smtp_allow_self_signed', 0) === 1;
+    $forceFrom = (int)setting('smtp_force_from', 0) === 1;
+    $keepAlive = (int)setting('smtp_keep_alive', 0) === 1;
+
+    if ($smtpEnabled) {
+        $mail->isSMTP();
+
+        $mail->Host = $host;
+        $mail->Port = $port;
+        $mail->Timeout = max(5, $timeout);
+        $mail->SMTPKeepAlive = $keepAlive;
+
+        if ($secure === 'ssl') {
+            $mail->SMTPSecure =
+                \PHPMailer\PHPMailer\PHPMailer::ENCRYPTION_SMTPS;
+
+        } elseif ($secure === 'tls' || $secure === 'starttls') {
+            $mail->SMTPSecure =
+                \PHPMailer\PHPMailer\PHPMailer::ENCRYPTION_STARTTLS;
+
+        } else {
+            $mail->SMTPAutoTLS = false;
+        }
+
+        $mail->SMTPAuth = ($username !== '' || $password !== '');
+
+        if ($mail->SMTPAuth) {
+            $mail->Username = $username;
+            $mail->Password = $password;
+        }
+
+        if (in_array($authType, ['login', 'plain', 'cram-md5'], true)) {
+            $mail->AuthType = $authType;
+        }
+
+        if ($allowSelfSigned) {
+            $mail->SMTPOptions = [
+                'ssl' => [
+                    'verify_peer' => false,
+                    'verify_peer_name' => false,
+                    'allow_self_signed' => true,
+                ],
+            ];
+        }
+    }
+
+    $fromEmail = trim((string)setting(
+        'smtp_from_email',
+        setting(
+            'contact_email',
+            'no-reply@' . ($_SERVER['HTTP_HOST'] ?? 'localhost')
+        )
+    ));
+
+    $fromName = trim((string)setting(
+        'smtp_from_name',
+        setting('site_title', 'Web')
+    ));
+
+    if (
+        $forceFrom
+        && $smtpEnabled
+        && filter_var($username, FILTER_VALIDATE_EMAIL)
+    ) {
+        $fromEmail = $username;
+    }
+
+    if (!filter_var($fromEmail, FILTER_VALIDATE_EMAIL)) {
+        throw new RuntimeException(
+            'V nastavení není platná adresa odesílatele.'
+        );
+    }
+
+    $mail->setFrom($fromEmail, $fromName);
+
+    $replyTo = trim((string)setting('smtp_reply_to', ''));
+
+    if ($replyTo !== '' && filter_var($replyTo, FILTER_VALIDATE_EMAIL)) {
+        $mail->addReplyTo($replyTo, $fromName);
+    }
+
+    /*
+     * Volitelné DKIM nastavení
+     */
+    $dkimDomain = trim((string)setting('dkim_domain', ''));
+    $dkimSelector = trim((string)setting('dkim_selector', ''));
+    $dkimPrivateKey = trim((string)setting('dkim_private_key', ''));
+    $dkimIdentity = trim((string)setting('dkim_identity', ''));
+
+    if (
+        $dkimDomain !== ''
+        && $dkimSelector !== ''
+        && $dkimPrivateKey !== ''
+    ) {
+        $mail->DKIM_domain = $dkimDomain;
+        $mail->DKIM_selector = $dkimSelector;
+        $mail->DKIM_identity = $dkimIdentity ?: $fromEmail;
+
+        if (str_starts_with($dkimPrivateKey, '-----BEGIN')) {
+            $mail->DKIM_private_string = $dkimPrivateKey;
+        } else {
+            $mail->DKIM_private = $dkimPrivateKey;
+        }
+    }
+
+    return $mail;
+}

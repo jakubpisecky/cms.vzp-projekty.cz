@@ -123,7 +123,7 @@ $totalPages = max(1, (int)ceil($total / $perPage));
                                     <td><?php echo (int)$row['id']; ?></td>
                                     <td><strong><?php echo htmlspecialchars($row['title']); ?></strong></td>
                                     <td><?php echo formatDateTimeCz(htmlspecialchars($row['created_at'])); ?></td>
-                                    <td class="text-end">
+                                    <td class="text-center">
                                         <div class="btn-group btn-group-sm">
                                             <a href="template_edit.php?id=<?php echo (int)$row['id']; ?>"
                                                class="btn btn-outline-primary"

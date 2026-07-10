@@ -104,7 +104,7 @@ include "../includes/header.php";
                                         <?php endif; ?>
                                     </td>
 
-                                    <td class="text-end">
+                                    <td class="text-center">
                                         <a href="fields.php?id=<?= (int)$row['id'] ?>" class="btn btn-sm btn-outline-primary">
                                             Pole
                                         </a>

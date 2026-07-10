@@ -27,12 +27,21 @@ $msg = "";
 $errors = [];
 
 $fieldTypes = [
-    'text' => 'Text',
-    'email' => 'E-mail',
-    'phone' => 'Telefon',
-    'textarea' => 'Textarea',
-    'checkbox' => 'Checkbox',
-    'select' => 'Select',
+    'text'           => 'Text',
+    'email'          => 'E-mail',
+    'phone'          => 'Telefon',
+    'number'         => 'Číslo',
+    'date'           => 'Datum',
+    'time'           => 'Čas',
+    'url'            => 'Webová adresa',
+    'textarea'       => 'Víceřádkový text',
+    'select'         => 'Výběrové pole',
+    'radio'          => 'Radio buttony',
+    'checkbox'       => 'Checkbox',
+    'checkbox_group' => 'Skupina checkboxů',
+    'hidden'         => 'Skryté pole',
+    'heading'        => 'Nadpis / oddělení formuláře',
+    'html'           => 'Vlastní text / HTML',
 ];
 
 $widths = [
@@ -322,7 +331,7 @@ include "../includes/header.php";
                                 <th>Šířka</th>
                                 <th class="text-center">Povinné</th>
                                 <th class="text-center">Stav</th>
-                                <th class="text-end">Akce</th>
+                                <th class="text-center">Akce</th>
                             </tr>
                         </thead>
 
@@ -359,7 +368,19 @@ include "../includes/header.php";
                                         <?= (int)$field['is_active'] === 1 ? '<span class="badge bg-success">Aktivní</span>' : '<span class="badge bg-secondary">Neaktivní</span>' ?>
                                     </td>
 
-                                    <td class="text-end">
+                                    <td class="text-center text-nowrap">
+                                        <a href="field_move.php?id=<?= (int)$field['id'] ?>&form_id=<?= (int)$formId ?>&dir=up"
+                                        class="btn btn-sm btn-outline-secondary"
+                                        title="Posunout nahoru">
+                                            <i class="bi bi-arrow-up"></i>
+                                        </a>
+
+                                        <a href="field_move.php?id=<?= (int)$field['id'] ?>&form_id=<?= (int)$formId ?>&dir=down"
+                                        class="btn btn-sm btn-outline-secondary"
+                                        title="Posunout dolů">
+                                            <i class="bi bi-arrow-down"></i>
+                                        </a>
+
                                         <button type="button"
                                                 class="btn btn-sm btn-outline-secondary edit-field-btn"
                                                 data-bs-toggle="modal"
@@ -377,14 +398,21 @@ include "../includes/header.php";
                                             Upravit
                                         </button>
 
-                                        <form method="post" class="d-inline" onsubmit="return confirm('Opravdu chcete pole smazat?');">
-                                            <input type="hidden" name="action" value="delete">
-                                            <input type="hidden" name="field_id" value="<?= (int)$field['id'] ?>">
+                                        <form method="post"
+                                            class="d-inline"
+                                            onsubmit="return confirm('Opravdu chcete pole smazat?');">
 
-                                            <button type="submit" class="btn btn-sm btn-outline-danger">
+                                            <input type="hidden" name="action" value="delete">
+                                            <input type="hidden"
+                                                name="field_id"
+                                                value="<?= (int)$field['id'] ?>">
+
+                                            <button type="submit"
+                                                    class="btn btn-sm btn-outline-danger">
                                                 Smazat
                                             </button>
                                         </form>
+
                                     </td>
                                 </tr>
                             <?php endwhile; ?>
@@ -447,7 +475,7 @@ include "../includes/header.php";
                     <label class="form-label">Možnosti</label>
                     <textarea name="options" id="field_options" class="form-control" rows="4"></textarea>
                     <div class="form-text">
-                        Používá se pro Select. Každá možnost na nový řádek.
+                        Používá se pro Select a Radio buttony. Každá možnost na nový řádek.
                     </div>
                 </div>
 

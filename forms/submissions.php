@@ -78,7 +78,7 @@ include "../includes/header.php";
                                             ? '<span class="badge bg-secondary">Přečteno</span>'
                                             : '<span class="badge bg-success">Nové</span>' ?>
                                     </td>
-                                    <td class="text-end">
+                                    <td class="text-center">
                                         <a href="submission_detail.php?id=<?= (int)$row['id'] ?>"
                                            class="btn btn-sm btn-outline-primary">
                                             Detail
