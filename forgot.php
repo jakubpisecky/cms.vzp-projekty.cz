@@ -45,7 +45,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 $mail->Host       = 'email.active24.com'; // tvůj SMTP
                 $mail->SMTPAuth   = true;
                 $mail->Username   = 'info@vzp-projekty.cz'; 
-                $mail->Password   = 'Ascoli1522';
+                $mail->Password   = 'Ascoli1522??';
                 $mail->SMTPSecure = PHPMailer::ENCRYPTION_STARTTLS;
                 $mail->Port       = 587;
 
