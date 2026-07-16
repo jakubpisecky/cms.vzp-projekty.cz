@@ -336,7 +336,7 @@ function invoiceStatusBadge(string $status): string
                             ?>
                         </td>
                         <td><?= number_format((float)$row['total_with_vat'], 2, ',', ' ') ?> <?= htmlspecialchars($row['currency']) ?></td>
-                        <td class="text-end">
+                        <td class="text-center">
                             <div class="d-flex flex-wrap gap-1 justify-content-end">
                                 <?php if (($row['status'] ?? '') !== 'paid'): ?>
                                     <a href="mark_paid.php?id=<?= (int)$row['id'] ?>"

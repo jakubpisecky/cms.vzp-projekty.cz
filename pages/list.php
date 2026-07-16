@@ -287,7 +287,7 @@ $base = buildBaseUrl();
 
                             <td class="text-center"><?= (int)$n['menu_order'] ?></td>
 
-                            <td class="text-center text-nowrap">
+                            <td class="text-left text-nowrap">
                                 <?= $toggleBtn ?>
 
                                 <a href="add.php?parent_id=<?= $id ?>" class="btn btn-sm btn-success me-1" title="Přidat podstránku">

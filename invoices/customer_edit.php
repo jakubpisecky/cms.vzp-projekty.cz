@@ -98,7 +98,7 @@ include "../includes/header.php";
 
 <div class="container-fluid py-4">
     <div class="row">
-        <div class="col-lg-8 offset-lg-2">
+        <div class="col-lg-12">
 
             <div class="admin-page-header-content mb-4">
                 <div>

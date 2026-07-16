@@ -64,7 +64,7 @@ $result = $stmt->get_result();
 $totalPages = max(1, (int)ceil($total / $perPage));
 ?>
 
-<div class="container-fluid">
+<div class="container-fluid py-4">
 
     <div class="admin-page-header-content mb-4">
         <div>
@@ -127,7 +127,7 @@ $totalPages = max(1, (int)ceil($total / $perPage));
                         <th>E-mail</th>
                         <th>Telefon</th>
                         <th>Vytvořeno</th>
-                        <th class="text-end">Akce</th>
+                        <th class="text-center">Akce</th>
                     </tr>
                 </thead>
                 <tbody>
@@ -150,8 +150,8 @@ $totalPages = max(1, (int)ceil($total / $perPage));
                         <td><?= htmlspecialchars($row['email'] ?? '') ?></td>
                         <td><?= htmlspecialchars($row['phone'] ?? '') ?></td>
                         <td><?= formatDateTimeCz(htmlspecialchars($row['created_at'])) ?></td>
-                        <td class="text-end">
-                            <div class="d-flex flex-wrap gap-1 justify-content-end">
+                        <td class="text-center">
+                            <div class="d-flex flex-wrap">
                                 <a href="customer_edit.php?id=<?= (int)$row['id'] ?>"
                                    class="btn btn-sm btn-outline-primary"
                                    title="Upravit">
