@@ -248,7 +248,8 @@ $base = buildBaseUrl();
                         <th width="160" class="text-center">Typ</th>
                         <th width="120" class="text-center">Stav</th>
                         <th width="110" class="text-center">Pořadí</th>
-                        <th width="260" class="text-center">Akce</th>
+                        <th width="260" class="text-left">Akce</th>
+                        
                     </tr>
                 </thead>
 
