@@ -41,6 +41,9 @@ $send_email = (int)($form['send_email'] ?? 1);
 $use_recaptcha = (int)($form['use_recaptcha'] ?? 0);
 $is_active = (int)($form['is_active'] ?? 1);
 $sort_order = (int)($form['sort_order'] ?? 10);
+$send_confirmation = (int)($form['send_confirmation'] ?? 0);
+$confirmation_subject = $form['confirmation_subject'] ?? '';
+$confirmation_message = $form['confirmation_message'] ?? '';
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
@@ -56,6 +59,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $send_email = isset($_POST['send_email']) ? 1 : 0;
     $use_recaptcha = isset($_POST['use_recaptcha']) ? 1 : 0;
     $is_active = isset($_POST['is_active']) ? 1 : 0;
+    $send_confirmation = isset($_POST['send_confirmation']) ? 1 : 0;
+    $confirmation_subject = trim($_POST['confirmation_subject'] ?? '');
+    $confirmation_message = trim($_POST['confirmation_message'] ?? '');
 
     if ($slug === '' && $name !== '') {
         $slug = slugify($name);
@@ -102,13 +108,16 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                     use_recaptcha = ?,
                     is_active = ?,
                     sort_order = ?,
+                    send_confirmation = ?,
+                    confirmation_subject = ?,
+                    confirmation_message = ?,
                     updated_at = NOW()
                 WHERE id = ?
                 LIMIT 1
             ");
 
             $stmt->bind_param(
-                "ssssssiiiiii",
+                "ssssssiiiiiissi",
                 $name,
                 $slug,
                 $description,
@@ -120,6 +129,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 $use_recaptcha,
                 $is_active,
                 $sort_order,
+                $send_confirmation,
+                $confirmation_subject,
+                $confirmation_message,
                 $id
             );
 
@@ -212,10 +224,33 @@ include "../includes/header.php";
                         </div>
 
                         <div class="mb-3">
-                            <label class="form-label">Děkovací zpráva</label>
+                            <label class="form-label">Děkovací zpráva na webu</label>
                             <textarea name="success_message"
                                       class="form-control"
                                       rows="4"><?= e($success_message) ?></textarea>
+                        </div>
+                        
+                        <hr class="my-4">
+                        
+                        <div class="mb-3">
+                            <label class="form-label">Předmět potvrzovacího e-mailu odesílateli</label>
+
+                            <input type="text"
+                                name="confirmation_subject"
+                                class="form-control"
+                                value="<?= e($confirmation_subject) ?>"
+                                placeholder="Děkujeme za vaši zprávu">
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label">Text potvrzovacího e-mailu odesílateli</label>
+
+                            <textarea name="confirmation_message"
+                                    class="form-control"
+                                    rows="6"><?= e($confirmation_message) ?></textarea>
+
+                            <div class="form-text">
+                                Potvrzení se odešle na první pole typu E-mail ve formuláři.
+                            </div>
                         </div>
 
                     </div>
@@ -271,7 +306,7 @@ include "../includes/header.php";
                                     </label>
                                 </div>
 
-                                <div class="form-check form-switch mb-0">
+                                <div class="form-check form-switch mb-3">
                                     <input class="form-check-input"
                                            type="checkbox"
                                            name="use_recaptcha"
@@ -280,6 +315,19 @@ include "../includes/header.php";
                                            <?= $use_recaptcha ? 'checked' : '' ?>>
                                     <label class="form-check-label" for="use_recaptcha">
                                         Použít reCAPTCHA
+                                    </label>
+                                </div>
+
+                                <div class="form-check form-switch mb-0">
+                                    <input class="form-check-input"
+                                        type="checkbox"
+                                        name="send_confirmation"
+                                        id="send_confirmation"
+                                        value="1"
+                                        <?= $send_confirmation ? 'checked' : '' ?>>
+
+                                    <label class="form-check-label" for="send_confirmation">
+                                        Poslat potvrzovací e-mail odesílateli
                                     </label>
                                 </div>
 
