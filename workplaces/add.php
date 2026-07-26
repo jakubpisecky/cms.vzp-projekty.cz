@@ -157,16 +157,24 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $selectedSpecializations = [];
     }
 
-    $selectedCategories = array_values(array_unique(array_filter(
-        array_map('intval', $selectedCategories)
-    )));
+    $selectedCategories = array_values(
+        array_unique(
+            array_filter(
+                array_map('intval', $selectedCategories)
+            )
+        )
+    );
 
-    $selectedSpecializations = array_values(array_unique(array_filter(
-        array_map('intval', $selectedSpecializations)
-    )));
+    $selectedSpecializations = array_values(
+        array_unique(
+            array_filter(
+                array_map('intval', $selectedSpecializations)
+            )
+        )
+    );
 
     /*
-     * Slug vytvoříme automaticky, pokud není zadaný.
+     * Slug
      */
     if ($slug === '' && $name !== '') {
         $slug = slugify($name);
@@ -174,7 +182,11 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $slug = slugify($slug);
     }
 
-    if (!in_array($status, ['draft', 'published', 'archived'], true)) {
+    if (!in_array(
+        $status,
+        ['draft', 'published', 'archived'],
+        true
+    )) {
         $status = 'draft';
     }
 
@@ -197,7 +209,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $errors[] = 'Vyberte pracoviště nemocnice – Motol nebo Homolka.';
     }
 
-    if ($email !== '' && !filter_var($email, FILTER_VALIDATE_EMAIL)) {
+    if (
+        $email !== ''
+        && !filter_var($email, FILTER_VALIDATE_EMAIL)
+    ) {
         $errors[] = 'E-mail nemá platný formát.';
     }
 
@@ -216,7 +231,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     }
 
     /*
-     * Ověření lokality.
+     * Ověření lokality
      */
     if (!$errors) {
         $stmt = $conn->prepare("
@@ -228,16 +243,21 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         ");
         $stmt->bind_param("i", $locationId);
         $stmt->execute();
-        $locationExists = $stmt->get_result()->fetch_assoc();
+
+        $locationExists = $stmt
+            ->get_result()
+            ->fetch_assoc();
+
         $stmt->close();
 
         if (!$locationExists) {
-            $errors[] = 'Vybraná lokalita neexistuje nebo není aktivní.';
+            $errors[] =
+                'Vybraná lokalita neexistuje nebo není aktivní.';
         }
     }
 
     /*
-     * Ověření typu.
+     * Ověření typu
      */
     if (!$errors && $typeId > 0) {
         $stmt = $conn->prepare("
@@ -249,7 +269,11 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         ");
         $stmt->bind_param("i", $typeId);
         $stmt->execute();
-        $typeExists = $stmt->get_result()->fetch_assoc();
+
+        $typeExists = $stmt
+            ->get_result()
+            ->fetch_assoc();
+
         $stmt->close();
 
         if (!$typeExists) {
@@ -258,7 +282,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     }
 
     /*
-     * Kontrola duplicity slugu pracoviště.
+     * Kontrola duplicity slugu pracoviště
      */
     if (!$errors) {
         $stmt = $conn->prepare("
@@ -269,16 +293,21 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         ");
         $stmt->bind_param("s", $slug);
         $stmt->execute();
-        $exists = $stmt->get_result()->fetch_assoc();
+
+        $exists = $stmt
+            ->get_result()
+            ->fetch_assoc();
+
         $stmt->close();
 
         if ($exists) {
-            $errors[] = 'Pracoviště s tímto slugem už existuje.';
+            $errors[] =
+                'Pracoviště s tímto slugem už existuje.';
         }
     }
 
     /*
-     * Uložení pracoviště a automatické vytvoření hlavní stránky.
+     * Uložení
      */
     if (!$errors) {
 
@@ -290,8 +319,12 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             ? (float)str_replace(',', '.', $longitude)
             : null;
 
+        $typeIdDb = $typeId > 0
+            ? $typeId
+            : null;
+
         /*
-         * Tabulka pages zatím podporuje jen draft/published.
+         * Tabulka pages podporuje draft/published.
          * Archivované pracoviště dostane stránku ve stavu draft.
          */
         $pageStatus = $status === 'published'
@@ -303,104 +336,104 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             : null;
 
         /*
-         * Interní slug stránky vytvoříme s prefixem,
-         * aby se nemíchal s běžnými stránkami.
-         *
-         * Veřejná URL pracoviště se bude později skládat
-         * podle workplaces.slug.
+         * Interní slug stránky.
          */
         $pageSlug = 'pracoviste-' . $slug;
+
+        /*
+         * Vlastnictví stránky.
+         */
+        $ownerType = 'workplace';
 
         $conn->begin_transaction();
 
         try {
             /*
-             * 1. Vytvoření pracoviště.
-             *
-             * main_page_id zatím NULL, doplníme ho po vytvoření stránky.
+             * 1. Vytvoření pracoviště
              */
             $mainPageId = null;
-$typeIdDb = $typeId > 0 ? $typeId : null;
 
-$stmt = $conn->prepare("
-    INSERT INTO workplaces
-    (
-        location_id,
-        type_id,
-        main_page_id,
-        name,
-        short_name,
-        slug,
-        perex,
-        thumbnail,
-        logo,
-        email,
-        phone,
-        building,
-        floor,
-        address,
-        latitude,
-        longitude,
-        meta_title,
-        meta_description,
-        status,
-        sort_order,
-        is_active
-    )
-    VALUES
-    (
-        ?,
-        ?,
-        ?,
-        ?,
-        ?,
-        ?,
-        ?,
-        ?,
-        ?,
-        ?,
-        ?,
-        ?,
-        ?,
-        ?,
-        ?,
-        ?,
-        ?,
-        ?,
-        ?,
-        ?,
-        ?
-    )
-");
+            $stmt = $conn->prepare("
+                INSERT INTO workplaces
+                (
+                    location_id,
+                    type_id,
+                    main_page_id,
+                    name,
+                    short_name,
+                    slug,
+                    perex,
+                    thumbnail,
+                    logo,
+                    email,
+                    phone,
+                    building,
+                    floor,
+                    address,
+                    latitude,
+                    longitude,
+                    meta_title,
+                    meta_description,
+                    status,
+                    sort_order,
+                    is_active
+                )
+                VALUES
+                (
+                    ?,
+                    ?,
+                    ?,
+                    ?,
+                    ?,
+                    ?,
+                    ?,
+                    ?,
+                    ?,
+                    ?,
+                    ?,
+                    ?,
+                    ?,
+                    ?,
+                    ?,
+                    ?,
+                    ?,
+                    ?,
+                    ?,
+                    ?,
+                    ?
+                )
+            ");
 
-$stmt->bind_param(
-    "iiisssssssssssddsssii",
-    $locationId,
-    $typeIdDb,
-    $mainPageId,
-    $name,
-    $shortName,
-    $slug,
-    $perex,
-    $thumbnail,
-    $logo,
-    $email,
-    $phone,
-    $building,
-    $floor,
-    $address,
-    $latitudeDb,
-    $longitudeDb,
-    $metaTitle,
-    $metaDescription,
-    $status,
-    $sortOrder,
-    $isActive
-);
+            $stmt->bind_param(
+                "iiisssssssssssddsssii",
+                $locationId,
+                $typeIdDb,
+                $mainPageId,
+                $name,
+                $shortName,
+                $slug,
+                $perex,
+                $thumbnail,
+                $logo,
+                $email,
+                $phone,
+                $building,
+                $floor,
+                $address,
+                $latitudeDb,
+                $longitudeDb,
+                $metaTitle,
+                $metaDescription,
+                $status,
+                $sortOrder,
+                $isActive
+            );
 
-$stmt->execute();
-$workplaceId = (int)$stmt->insert_id;
-$stmt->close();
+            $stmt->execute();
+
+            $workplaceId = (int)$stmt->insert_id;
+
+            $stmt->close();
 
             if ($workplaceId <= 0) {
                 throw new RuntimeException(
@@ -409,7 +442,12 @@ $stmt->close();
             }
 
             /*
-             * 2. Vytvoření hlavní stránky v tabulce pages.
+             * owner_id známe až po vytvoření pracoviště.
+             */
+            $ownerId = $workplaceId;
+
+            /*
+             * 2. Vytvoření hlavní stránky pracoviště
              */
             $parentId = 0;
             $pageContent = null;
@@ -422,6 +460,8 @@ $stmt->close();
                 INSERT INTO pages
                 (
                     parent_id,
+                    owner_type,
+                    owner_id,
                     title,
                     slug,
                     content,
@@ -447,13 +487,35 @@ $stmt->close();
                     ?,
                     ?,
                     ?,
+                    ?,
+                    ?,
                     ?
                 )
             ");
 
+            /*
+             * Typy:
+             *
+             * i parent_id
+             * s owner_type
+             * i owner_id
+             * s title
+             * s slug
+             * s content
+             * s meta_title
+             * s meta_description
+             * i show_in_menu
+             * i show_breadcrumbs
+             * i menu_order
+             * s status
+             * s template
+             * s published_at
+             */
             $stmt->bind_param(
-                "isssssiissss",
+                "isisssssiiisss",
                 $parentId,
+                $ownerType,
+                $ownerId,
                 $name,
                 $pageSlug,
                 $pageContent,
@@ -468,7 +530,9 @@ $stmt->close();
             );
 
             $stmt->execute();
+
             $pageId = (int)$stmt->insert_id;
+
             $stmt->close();
 
             if ($pageId <= 0) {
@@ -478,7 +542,7 @@ $stmt->close();
             }
 
             /*
-             * 3. Doplnění main_page_id.
+             * 3. Doplnění main_page_id
              */
             $stmt = $conn->prepare("
                 UPDATE workplaces
@@ -495,11 +559,12 @@ $stmt->close();
             $stmt->close();
 
             /*
-             * 4. Hlavní stránku zařadíme také do navigace pracoviště.
+             * 4. Zařazení hlavní stránky do struktury pracoviště
              */
             $workplacePageParentId = null;
             $workplacePageOrder = 10;
             $workplacePageActive = 1;
+            $workplacePageShowInMenu = 1;
 
             $stmt = $conn->prepare("
                 INSERT INTO workplace_pages
@@ -516,17 +581,18 @@ $stmt->close();
                     ?,
                     ?,
                     ?,
-                    1,
+                    ?,
                     ?,
                     ?
                 )
             ");
 
             $stmt->bind_param(
-                "iiiii",
+                "iiiiii",
                 $workplaceId,
                 $pageId,
                 $workplacePageParentId,
+                $workplacePageShowInMenu,
                 $workplacePageOrder,
                 $workplacePageActive
             );
@@ -535,7 +601,7 @@ $stmt->close();
             $stmt->close();
 
             /*
-             * 5. Kategorie pracoviště.
+             * 5. Kategorie
              */
             if (!empty($selectedCategories)) {
                 $stmt = $conn->prepare("
@@ -558,7 +624,7 @@ $stmt->close();
             }
 
             /*
-             * 6. Odbornosti pracoviště.
+             * 6. Odbornosti
              */
             if (!empty($selectedSpecializations)) {
                 $stmt = $conn->prepare("
@@ -568,7 +634,10 @@ $stmt->close();
                         (?, ?)
                 ");
 
-                foreach ($selectedSpecializations as $specializationId) {
+                foreach (
+                    $selectedSpecializations
+                    as $specializationId
+                ) {
                     $stmt->bind_param(
                         "ii",
                         $workplaceId,
@@ -587,12 +656,11 @@ $stmt->close();
             );
 
             /*
-             * Po vytvoření přejdeme rovnou do správy bloků
-             * hlavní stránky pracoviště.
+             * Zůstaneme v modulu Pracoviště.
              */
             header(
-                "Location: ../pages/blocks.php?page_id="
-                . $pageId
+                "Location: pages.php?id="
+                . $workplaceId
                 . "&created=1"
             );
             exit;
@@ -601,10 +669,12 @@ $stmt->close();
             $conn->rollback();
 
             error_log(
-                'Workplace create error: ' . $e->getMessage()
+                'Workplace create error: '
+                . $e->getMessage()
             );
 
-            $errors[] = 'Pracoviště se nepodařilo vytvořit: '
+            $errors[] =
+                'Pracoviště se nepodařilo vytvořit: '
                 . $e->getMessage();
         }
     }
@@ -618,7 +688,9 @@ include "../includes/header.php";
     <div class="admin-page-header-content mb-4">
 
         <div>
-            <h2 class="mb-1">Přidat pracoviště</h2>
+            <h2 class="mb-1">
+                Přidat pracoviště
+            </h2>
 
             <p class="text-muted mb-0">
                 Klinika, oddělení, centrum nebo jiné pracoviště
@@ -631,7 +703,6 @@ include "../includes/header.php";
 
             <i class="bi bi-arrow-left me-1"></i>
             Zpět na pracoviště
-
         </a>
 
     </div>
@@ -707,7 +778,8 @@ include "../includes/header.php";
                                     value="<?= e($slug) ?>">
 
                                 <div class="form-text">
-                                    Pokud zůstane prázdný, vytvoří se z názvu.
+                                    Pokud zůstane prázdný,
+                                    vytvoří se z názvu.
                                 </div>
 
                             </div>
@@ -932,83 +1004,101 @@ include "../includes/header.php";
 
                     <div class="card-body">
 
-                       <div class="mb-3">
-    <label class="form-label">Náhledový obrázek</label>
+                        <div class="mb-3">
 
-    <div class="input-group">
-        <input
-            type="text"
-            name="thumbnail"
-            id="workplace_thumbnail"
-            class="form-control"
-            placeholder="URL obrázku"
-            value="<?= e($thumbnail) ?>"
-            readonly>
+                            <label class="form-label">
+                                Náhledový obrázek
+                            </label>
 
-        <button
-            type="button"
-            class="btn btn-outline-secondary open-picker"
-            data-bs-toggle="modal"
-            data-bs-target="#imagePickerModal"
-            data-iframe-src="/pictures/list.php?picker=thumb"
-            data-target-input="#workplace_thumbnail"
-            data-target-preview="#workplace-thumbnail-preview">
+                            <div class="input-group">
 
-            Vybrat...
-        </button>
-    </div>
+                                <input
+                                    type="text"
+                                    name="thumbnail"
+                                    id="workplace_thumbnail"
+                                    class="form-control"
+                                    placeholder="URL obrázku"
+                                    value="<?= e($thumbnail) ?>"
+                                    readonly>
 
-    <div
-        class="mt-2"
-        id="workplace-thumbnail-preview"
-        <?= $thumbnail === '' ? 'style="display:none;"' : '' ?>>
+                                <button
+                                    type="button"
+                                    class="btn btn-outline-secondary open-picker"
+                                    data-bs-toggle="modal"
+                                    data-bs-target="#imagePickerModal"
+                                    data-iframe-src="/pictures/list.php?picker=thumb"
+                                    data-target-input="#workplace_thumbnail"
+                                    data-target-preview="#workplace-thumbnail-preview">
 
-        <img
-            src="<?= e($thumbnail) ?>"
-            alt="Náhled"
-            class="img-fluid mt-2 rounded border"
-            style="max-height:150px;">
-    </div>
-</div>
+                                    Vybrat...
+                                </button>
 
-<div class="mb-0">
-    <label class="form-label">Logo pracoviště</label>
+                            </div>
 
-    <div class="input-group">
-        <input
-            type="text"
-            name="logo"
-            id="workplace_logo"
-            class="form-control"
-            placeholder="URL obrázku"
-            value="<?= e($logo) ?>"
-            readonly>
+                            <div
+                                class="mt-2"
+                                id="workplace-thumbnail-preview"
+                                <?= $thumbnail === ''
+                                    ? 'style="display:none;"'
+                                    : '' ?>>
 
-        <button
-            type="button"
-            class="btn btn-outline-secondary open-picker"
-            data-bs-toggle="modal"
-            data-bs-target="#imagePickerModal"
-            data-iframe-src="/pictures/list.php?picker=thumb"
-            data-target-input="#workplace_logo"
-            data-target-preview="#workplace-logo-preview">
+                                <img
+                                    src="<?= e($thumbnail) ?>"
+                                    alt="Náhled"
+                                    class="img-fluid mt-2 rounded border"
+                                    style="max-height:150px;">
 
-            Vybrat...
-        </button>
-    </div>
+                            </div>
 
-    <div
-        class="mt-2"
-        id="workplace-logo-preview"
-        <?= $logo === '' ? 'style="display:none;"' : '' ?>>
+                        </div>
 
-        <img
-            src="<?= e($logo) ?>"
-            alt="Logo"
-            class="img-fluid mt-2 rounded border"
-            style="max-height:150px;">
-    </div>
-</div>
+                        <div class="mb-0">
+
+                            <label class="form-label">
+                                Logo pracoviště
+                            </label>
+
+                            <div class="input-group">
+
+                                <input
+                                    type="text"
+                                    name="logo"
+                                    id="workplace_logo"
+                                    class="form-control"
+                                    placeholder="URL obrázku"
+                                    value="<?= e($logo) ?>"
+                                    readonly>
+
+                                <button
+                                    type="button"
+                                    class="btn btn-outline-secondary open-picker"
+                                    data-bs-toggle="modal"
+                                    data-bs-target="#imagePickerModal"
+                                    data-iframe-src="/pictures/list.php?picker=thumb"
+                                    data-target-input="#workplace_logo"
+                                    data-target-preview="#workplace-logo-preview">
+
+                                    Vybrat...
+                                </button>
+
+                            </div>
+
+                            <div
+                                class="mt-2"
+                                id="workplace-logo-preview"
+                                <?= $logo === ''
+                                    ? 'style="display:none;"'
+                                    : '' ?>>
+
+                                <img
+                                    src="<?= e($logo) ?>"
+                                    alt="Logo"
+                                    class="img-fluid mt-2 rounded border"
+                                    style="max-height:150px;">
+
+                            </div>
+
+                        </div>
 
                     </div>
 
@@ -1082,7 +1172,6 @@ include "../includes/header.php";
                                         : '' ?>>
 
                                     Koncept
-
                                 </option>
 
                                 <option
@@ -1092,7 +1181,6 @@ include "../includes/header.php";
                                         : '' ?>>
 
                                     Publikováno
-
                                 </option>
 
                                 <option
@@ -1102,7 +1190,6 @@ include "../includes/header.php";
                                         : '' ?>>
 
                                     Archivováno
-
                                 </option>
 
                             </select>
@@ -1138,7 +1225,6 @@ include "../includes/header.php";
                                 for="is_active">
 
                                 Aktivní
-
                             </label>
 
                         </div>
@@ -1269,8 +1355,7 @@ include "../includes/header.php";
                     class="btn btn-success">
 
                     <i class="bi bi-save me-1"></i>
-                    Uložit a přejít na bloky
-
+                    Uložit pracoviště
                 </button>
 
                 <a
@@ -1278,7 +1363,6 @@ include "../includes/header.php";
                     class="btn btn-outline-secondary">
 
                     Zrušit
-
                 </a>
 
             </div>

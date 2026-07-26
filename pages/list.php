@@ -203,7 +203,7 @@ $base = buildBaseUrl();
     $stmt = $conn->prepare("
         SELECT COUNT(*) AS cnt
         FROM pages p
-        WHERE p.title LIKE ? OR p.slug LIKE ?
+        WHERE p.title LIKE ? OR p.slug LIKE ? AND owner_type = 'page'
     ");
     $stmt->bind_param("ss", $like, $like);
     $stmt->execute();
@@ -222,7 +222,7 @@ $base = buildBaseUrl();
         SELECT p.*, parent.title AS parent_title
         FROM pages p
         LEFT JOIN pages parent ON parent.id = p.parent_id
-        WHERE p.title LIKE ? OR p.slug LIKE ?
+        WHERE p.title LIKE ? OR p.slug LIKE ? AND owner_type = 'page'
         ORDER BY p.parent_id ASC, p.menu_order ASC, p.id ASC
         LIMIT ?, ?
     ");
@@ -336,7 +336,7 @@ $base = buildBaseUrl();
     <?php
     $res = $conn->query("
         SELECT *
-        FROM pages
+        FROM pages WHERE owner_type = 'page'
         ORDER BY parent_id ASC, menu_order ASC, id ASC
     ");
 
