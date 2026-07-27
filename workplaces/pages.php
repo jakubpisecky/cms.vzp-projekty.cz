@@ -384,7 +384,7 @@ include "../includes/header.php";
                                     </a>
 
                                     <a
-                                        href="../pages/blocks.php?page_id=<?= $pageId ?>"
+                                        href="page_blocks.php?page_id=<?= $pageId ?>"
                                         class="btn btn-sm btn-outline-primary">
 
                                         <i class="bi bi-grid me-1"></i>

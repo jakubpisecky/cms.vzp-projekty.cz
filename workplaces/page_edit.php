@@ -13,7 +13,10 @@ if ($workplacePageId <= 0) {
 }
 
 /*
- * Načtení stránky a pracoviště
+ * Načtení stránky a pracoviště.
+ *
+ * Současně ověřujeme, že stránka skutečně patří
+ * do modulu Pracoviště.
  */
 $stmt = $conn->prepare("
     SELECT
@@ -25,6 +28,8 @@ $stmt = $conn->prepare("
         wp.sort_order,
         wp.is_active,
 
+        p.owner_type,
+        p.owner_id,
         p.title,
         p.slug,
         p.meta_title,
@@ -46,11 +51,17 @@ $stmt = $conn->prepare("
         ON w.id = wp.workplace_id
 
     WHERE wp.id = ?
+      AND p.owner_type = 'workplace'
+      AND p.owner_id = wp.workplace_id
+
     LIMIT 1
 ");
+
 $stmt->bind_param("i", $workplacePageId);
 $stmt->execute();
+
 $page = $stmt->get_result()->fetch_assoc();
+
 $stmt->close();
 
 if (!$page) {
@@ -61,22 +72,44 @@ if (!$page) {
 $workplaceId = (int)$page['workplace_id'];
 $pageId = (int)$page['page_id'];
 $mainPageId = (int)($page['main_page_id'] ?? 0);
+
 $isMainPage = $pageId === $mainPageId;
 
 $errors = [];
 
+/*
+ * Výchozí hodnoty formuláře
+ */
 $title = $page['title'] ?? '';
 $storedPageSlug = $page['slug'] ?? '';
 
-$slugPrefix = 'pracoviste-' . slugify($page['workplace_slug']) . '-';
+$workplaceSlug = slugify(
+    (string)($page['workplace_slug'] ?? '')
+);
 
+$slugPrefix = 'pracoviste-' . $workplaceSlug . '-';
+
+/*
+ * V administraci zobrazujeme pouze veřejnou část slugu.
+ *
+ * Hlavní stránka:
+ * pracoviste-nazev-pracoviste
+ *
+ * Podstránka:
+ * pracoviste-nazev-pracoviste-kontakty
+ */
 if ($isMainPage) {
-    $slug = $page['workplace_slug'] ?? '';
+    $slug = $workplaceSlug;
+
 } elseif (
     $slugPrefix !== ''
     && str_starts_with($storedPageSlug, $slugPrefix)
 ) {
-    $slug = substr($storedPageSlug, strlen($slugPrefix));
+    $slug = substr(
+        $storedPageSlug,
+        strlen($slugPrefix)
+    );
+
 } else {
     $slug = $storedPageSlug;
 }
@@ -94,10 +127,10 @@ $sortOrder = (int)($page['sort_order'] ?? 10);
 
 $templateOptions = [
     'universal' => 'Univerzální stránka',
-    'default' => 'Obecná stránka',
-    'articles' => 'Výpis článků',
-    'gallery' => 'Fotogalerie',
-    'contact' => 'Kontaktní formulář',
+    'default'   => 'Obecná stránka',
+    'articles'  => 'Výpis článků',
+    'gallery'   => 'Fotogalerie',
+    'contact'   => 'Kontaktní formulář',
 ];
 
 /*
@@ -107,20 +140,46 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
     $title = trim($_POST['title'] ?? '');
     $slug = trim($_POST['slug'] ?? '');
+
     $metaTitle = trim($_POST['meta_title'] ?? '');
-    $metaDescription = trim($_POST['meta_description'] ?? '');
+    $metaDescription = trim(
+        $_POST['meta_description'] ?? ''
+    );
 
-    $template = trim($_POST['template'] ?? 'universal');
-    $status = trim($_POST['status'] ?? 'draft');
+    $template = trim(
+        $_POST['template'] ?? 'universal'
+    );
 
-    $showInMenu = isset($_POST['show_in_menu']) ? 1 : 0;
-    $showBreadcrumbs = isset($_POST['show_breadcrumbs']) ? 1 : 0;
-    $isActive = isset($_POST['is_active']) ? 1 : 0;
+    $status = trim(
+        $_POST['status'] ?? 'draft'
+    );
 
-    $sortOrder = intval($_POST['sort_order'] ?? 10);
+    $showInMenu = isset($_POST['show_in_menu'])
+        ? 1
+        : 0;
 
-    if ($slug === '' && $title !== '') {
+    $showBreadcrumbs = isset($_POST['show_breadcrumbs'])
+        ? 1
+        : 0;
+
+    $isActive = isset($_POST['is_active'])
+        ? 1
+        : 0;
+
+    $sortOrder = intval(
+        $_POST['sort_order'] ?? 10
+    );
+
+    /*
+     * Hlavní stránka má slug řízený pracovištěm.
+     * U podstránky lze slug upravit.
+     */
+    if ($isMainPage) {
+        $slug = $workplaceSlug;
+
+    } elseif ($slug === '' && $title !== '') {
         $slug = slugify($title);
+
     } else {
         $slug = slugify($slug);
     }
@@ -129,7 +188,11 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $template = 'universal';
     }
 
-    if (!in_array($status, ['draft', 'published'], true)) {
+    if (!in_array(
+        $status,
+        ['draft', 'published'],
+        true
+    )) {
         $status = 'draft';
     }
 
@@ -137,56 +200,64 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $sortOrder = 10;
     }
 
+    /*
+     * Validace
+     */
     if ($title === '') {
         $errors[] = 'Vyplňte název stránky.';
     }
 
     if ($slug === '') {
-        $errors[] = 'Nepodařilo se vytvořit platný slug.';
+        $errors[] =
+            'Nepodařilo se vytvořit platný slug.';
     }
 
     /*
-     * Hlavní stránka používá interní slug:
-     * pracoviste-slug-pracoviste
-     *
-     * Podstránka:
-     * pracoviste-slug-pracoviste-slug-stranky
+     * Vytvoření interního slugu.
      */
     if ($isMainPage) {
-        $pageSlug = 'pracoviste-' . slugify($page['workplace_slug']);
+        $pageSlug = 'pracoviste-' . $workplaceSlug;
+
     } else {
         $pageSlug = 'pracoviste-'
-            . slugify($page['workplace_slug'])
+            . $workplaceSlug
             . '-'
             . $slug;
     }
 
     /*
-     * Kontrola duplicity veřejného slugu v daném pracovišti.
+     * Kontrola duplicity v rámci daného pracoviště.
      */
-    if (!$errors && !$isMainPage) {
+    if (!$errors) {
         $stmt = $conn->prepare("
-            SELECT wp.id
-            FROM workplace_pages wp
-            INNER JOIN pages p
-                ON p.id = wp.page_id
-            WHERE wp.workplace_id = ?
-              AND wp.id != ?
-              AND p.slug = ?
+            SELECT id
+            FROM pages
+            WHERE owner_type = 'workplace'
+              AND owner_id = ?
+              AND slug = ?
+              AND id != ?
             LIMIT 1
         ");
+
         $stmt->bind_param(
-            "iis",
+            "isi",
             $workplaceId,
-            $workplacePageId,
-            $pageSlug
+            $pageSlug,
+            $pageId
         );
+
         $stmt->execute();
-        $exists = $stmt->get_result()->fetch_assoc();
+
+        $existsInWorkplace = $stmt
+            ->get_result()
+            ->fetch_assoc();
+
         $stmt->close();
 
-        if ($exists) {
-            $errors[] = 'Jiná stránka tohoto pracoviště už používá stejný slug.';
+        if ($existsInWorkplace) {
+            $errors[] =
+                'Jiná stránka tohoto pracoviště '
+                . 'už používá stejný slug.';
         }
     }
 
@@ -201,17 +272,32 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
               AND id != ?
             LIMIT 1
         ");
-        $stmt->bind_param("si", $pageSlug, $pageId);
+
+        $stmt->bind_param(
+            "si",
+            $pageSlug,
+            $pageId
+        );
+
         $stmt->execute();
-        $exists = $stmt->get_result()->fetch_assoc();
+
+        $existsGlobally = $stmt
+            ->get_result()
+            ->fetch_assoc();
+
         $stmt->close();
 
-        if ($exists) {
-            $errors[] = 'Tento interní slug už používá jiná stránka.';
+        if ($existsGlobally) {
+            $errors[] =
+                'Tento interní slug už používá jiná stránka.';
         }
     }
 
+    /*
+     * Uložení
+     */
     if (!$errors) {
+
         $publishedAt = $status === 'published'
             ? date('Y-m-d H:i:s')
             : null;
@@ -220,7 +306,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
         try {
             /*
-             * 1. Aktualizace běžné stránky
+             * 1. Aktualizace stránky.
+             *
+             * owner_type a owner_id zde záměrně neměníme.
              */
             $stmt = $conn->prepare("
                 UPDATE pages
@@ -233,11 +321,13 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                     template = ?,
                     published_at = ?
                 WHERE id = ?
+                  AND owner_type = 'workplace'
+                  AND owner_id = ?
                 LIMIT 1
             ");
 
             $stmt->bind_param(
-                "ssssisssi",
+                "ssssisssii",
                 $title,
                 $pageSlug,
                 $metaTitle,
@@ -246,14 +336,23 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 $status,
                 $template,
                 $publishedAt,
-                $pageId
+                $pageId,
+                $workplaceId
             );
 
             $stmt->execute();
+
+            if ($stmt->affected_rows < 0) {
+                throw new RuntimeException(
+                    'Nepodařilo se aktualizovat stránku.'
+                );
+            }
+
             $stmt->close();
 
             /*
-             * 2. Aktualizace navigace pracoviště
+             * 2. Aktualizace nastavení stránky
+             * v navigaci pracoviště.
              */
             $stmt = $conn->prepare("
                 UPDATE workplace_pages
@@ -262,22 +361,29 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                     is_active = ?,
                     updated_at = NOW()
                 WHERE id = ?
+                  AND workplace_id = ?
+                  AND page_id = ?
                 LIMIT 1
             ");
 
             $stmt->bind_param(
-                "iiii",
+                "iiiiii",
                 $showInMenu,
                 $sortOrder,
                 $isActive,
-                $workplacePageId
+                $workplacePageId,
+                $workplaceId,
+                $pageId
             );
 
             $stmt->execute();
             $stmt->close();
 
             /*
-             * Hlavní stránka synchronizuje název a SEO pracoviště.
+             * Hlavní stránka synchronizuje název
+             * a SEO údaje pracoviště.
+             *
+             * Slug pracoviště se zde nemění.
              */
             if ($isMainPage) {
                 $stmt = $conn->prepare("
@@ -305,7 +411,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $conn->commit();
 
             logAction(
-                "Upravena stránka '$title' pracoviště '{$page['workplace_name']}'"
+                "Upravena stránka '$title' "
+                . "pracoviště '{$page['workplace_name']}'"
             );
 
             header(
@@ -319,10 +426,12 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $conn->rollback();
 
             error_log(
-                'Workplace page update error: ' . $e->getMessage()
+                'Workplace page update error: '
+                . $e->getMessage()
             );
 
-            $errors[] = 'Stránku se nepodařilo uložit: '
+            $errors[] =
+                'Stránku se nepodařilo uložit: '
                 . $e->getMessage();
         }
     }
@@ -336,19 +445,23 @@ include "../includes/header.php";
     <div class="admin-page-header-content mb-4">
 
         <div>
-            <h2 class="mb-1">Upravit stránku pracoviště</h2>
+
+            <h2 class="mb-1">
+                Upravit stránku pracoviště
+            </h2>
 
             <p class="text-muted mb-0">
                 <?= e($page['workplace_name']) ?>
                 —
                 <?= e($page['title']) ?>
             </p>
+
         </div>
 
         <div class="d-flex flex-wrap gap-2">
 
             <a
-                href="../pages/blocks.php?page_id=<?= $pageId ?>"
+                href="page_blocks.php?page_id=<?= $pageId ?>"
                 class="btn btn-outline-primary">
 
                 <i class="bi bi-grid me-1"></i>
@@ -368,18 +481,27 @@ include "../includes/header.php";
     </div>
 
     <?php if ($isMainPage): ?>
+
         <div class="alert alert-info">
-            Toto je hlavní stránka pracoviště. Její název a SEO údaje
-            se synchronizují se základními údaji pracoviště.
+
+            Toto je hlavní stránka pracoviště.
+            Její název a SEO údaje se synchronizují
+            se základními údaji pracoviště.
+
         </div>
+
     <?php endif; ?>
 
     <?php if ($errors): ?>
+
         <div class="alert alert-danger">
+
             <?php foreach ($errors as $error): ?>
                 <div><?= e($error) ?></div>
             <?php endforeach; ?>
+
         </div>
+
     <?php endif; ?>
 
     <div class="card shadow-sm border-0">
@@ -393,6 +515,7 @@ include "../includes/header.php";
                     <div class="col-lg-8">
 
                         <div class="mb-3">
+
                             <label class="form-label">
                                 Název stránky *
                             </label>
@@ -403,9 +526,11 @@ include "../includes/header.php";
                                 class="form-control"
                                 required
                                 value="<?= e($title) ?>">
+
                         </div>
 
                         <div class="mb-3">
+
                             <label class="form-label">
                                 Slug
                             </label>
@@ -415,23 +540,41 @@ include "../includes/header.php";
                                 name="slug"
                                 class="form-control"
                                 value="<?= e($slug) ?>"
-                                <?= $isMainPage ? 'readonly' : '' ?>>
+                                <?= $isMainPage
+                                    ? 'readonly'
+                                    : '' ?>>
 
                             <?php if ($isMainPage): ?>
+
                                 <div class="form-text">
-                                    Slug hlavní stránky se řídí slugem pracoviště.
+
+                                    Slug hlavní stránky se řídí
+                                    slugem pracoviště.
+
                                 </div>
+
                             <?php else: ?>
+
                                 <div class="form-text">
+
                                     Veřejná URL bude například:
+
                                     <code>
-                                        /kliniky-a-pracoviste/<?= e($page['workplace_slug']) ?>/<?= e($slug ?: 'nazev-stranky') ?>
+                                        /kliniky-a-pracoviste/<?= e(
+                                            $page['workplace_slug']
+                                        ) ?>/<?= e(
+                                            $slug ?: 'nazev-stranky'
+                                        ) ?>
                                     </code>
+
                                 </div>
+
                             <?php endif; ?>
+
                         </div>
 
                         <div class="mb-3">
+
                             <label class="form-label">
                                 Typ stránky
                             </label>
@@ -440,7 +583,11 @@ include "../includes/header.php";
                                 name="template"
                                 class="form-select">
 
-                                <?php foreach ($templateOptions as $value => $label): ?>
+                                <?php foreach (
+                                    $templateOptions
+                                    as $value => $label
+                                ): ?>
+
                                     <option
                                         value="<?= e($value) ?>"
                                         <?= $template === $value
@@ -448,15 +595,19 @@ include "../includes/header.php";
                                             : '' ?>>
 
                                         <?= e($label) ?>
+
                                     </option>
+
                                 <?php endforeach; ?>
 
                             </select>
+
                         </div>
 
                         <hr class="my-4">
 
                         <div class="mb-3">
+
                             <label class="form-label">
                                 Meta title
                             </label>
@@ -466,9 +617,11 @@ include "../includes/header.php";
                                 name="meta_title"
                                 class="form-control"
                                 value="<?= e($metaTitle) ?>">
+
                         </div>
 
                         <div class="mb-0">
+
                             <label class="form-label">
                                 Meta description
                             </label>
@@ -476,7 +629,10 @@ include "../includes/header.php";
                             <textarea
                                 name="meta_description"
                                 class="form-control"
-                                rows="4"><?= e($metaDescription) ?></textarea>
+                                rows="4"><?= e(
+                                    $metaDescription
+                                ) ?></textarea>
+
                         </div>
 
                     </div>
@@ -492,6 +648,7 @@ include "../includes/header.php";
                                 </h5>
 
                                 <div class="mb-3">
+
                                     <label class="form-label">
                                         Stav
                                     </label>
@@ -507,6 +664,7 @@ include "../includes/header.php";
                                                 : '' ?>>
 
                                             Koncept
+
                                         </option>
 
                                         <option
@@ -516,12 +674,15 @@ include "../includes/header.php";
                                                 : '' ?>>
 
                                             Publikováno
+
                                         </option>
 
                                     </select>
+
                                 </div>
 
                                 <div class="mb-3">
+
                                     <label class="form-label">
                                         Pořadí
                                     </label>
@@ -531,57 +692,73 @@ include "../includes/header.php";
                                         name="sort_order"
                                         class="form-control"
                                         value="<?= (int)$sortOrder ?>">
+
                                 </div>
 
                                 <div class="form-check form-switch mb-3">
+
                                     <input
                                         class="form-check-input"
                                         type="checkbox"
                                         name="show_in_menu"
                                         id="show_in_menu"
                                         value="1"
-                                        <?= $showInMenu ? 'checked' : '' ?>>
+                                        <?= $showInMenu
+                                            ? 'checked'
+                                            : '' ?>>
 
                                     <label
                                         class="form-check-label"
                                         for="show_in_menu">
 
                                         Zobrazit v navigaci pracoviště
+
                                     </label>
+
                                 </div>
 
                                 <div class="form-check form-switch mb-3">
+
                                     <input
                                         class="form-check-input"
                                         type="checkbox"
                                         name="show_breadcrumbs"
                                         id="show_breadcrumbs"
                                         value="1"
-                                        <?= $showBreadcrumbs ? 'checked' : '' ?>>
+                                        <?= $showBreadcrumbs
+                                            ? 'checked'
+                                            : '' ?>>
 
                                     <label
                                         class="form-check-label"
                                         for="show_breadcrumbs">
 
                                         Zobrazit drobečkovou navigaci
+
                                     </label>
+
                                 </div>
 
                                 <div class="form-check form-switch mb-0">
+
                                     <input
                                         class="form-check-input"
                                         type="checkbox"
                                         name="is_active"
                                         id="is_active"
                                         value="1"
-                                        <?= $isActive ? 'checked' : '' ?>>
+                                        <?= $isActive
+                                            ? 'checked'
+                                            : '' ?>>
 
                                     <label
                                         class="form-check-label"
                                         for="is_active">
 
                                         Aktivní
+
                                     </label>
+
                                 </div>
 
                             </div>
@@ -603,7 +780,7 @@ include "../includes/header.php";
                 </button>
 
                 <a
-                    href="../pages/blocks.php?page_id=<?= $pageId ?>"
+                    href="page_blocks.php?page_id=<?= $pageId ?>"
                     class="btn btn-outline-primary">
 
                     Správa bloků
