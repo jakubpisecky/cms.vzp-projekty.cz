@@ -166,6 +166,12 @@ $pageTemplatesLocal = [
         'icon' => 'bi bi-layout-three-columns',
         'blocks' => true,
     ],
+    'workplaces' => [
+        'title' => 'Výpis pracovišť',
+        'description' => 'Rozcestník klinik, oddělení a dalších pracovišť.',
+        'icon' => 'bi bi-hospital',
+        'blocks' => false,
+    ],
 ];
 
 // DŮLEŽITÉ: tady už nevoláme normalizePageTemplate()
