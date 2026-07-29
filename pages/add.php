@@ -172,6 +172,18 @@ $pageTemplatesLocal = [
         'icon' => 'bi bi-hospital',
         'blocks' => false,
     ],
+    'workplaces' => [
+        'title' => 'Výpis pracovišť',
+        'description' => 'Rozcestník klinik, oddělení a dalších pracovišť.',
+        'icon' => 'bi bi-hospital',
+        'blocks' => false,
+    ],
+    'workplace_team' => [
+        'title' => 'Výpis týmu',
+        'description' => 'Stránka s výpisem týmů a jejich členů.',
+        'icon' => 'bi bi-people',
+        'blocks' => false,
+    ]
 ];
 
 // DŮLEŽITÉ: tady už nevoláme normalizePageTemplate()

@@ -53,6 +53,8 @@ $pageTemplatesLocal = [
     'gallery' => 'Fotogalerie',
     'contact' => 'Kontaktní formulář',
     'universal' => 'Univerzální stránka',
+    'workplaces' => 'Výpis pracovišť',
+    'workplace_team' => 'Výpis týmu'
 ];
 
 $currentTpl = $page['template'] ?? 'page';

@@ -98,6 +98,7 @@ $PAGE_TEMPLATES = [
     'galleries' => 'Fotogalerie',
     'contact'   => 'Kontaktní formulář',
     'universal'   => 'Univerzální stránka',
+    'workplace_team' => 'Výpis týmu'
 ];
 
 // Pomocná validace; když přijde neznámá šablona, spadne na "page"

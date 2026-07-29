@@ -683,8 +683,7 @@ include "../includes/header.php";
 
                             <textarea
                                 name="perex"
-                                class="form-control"
-                                rows="4"><?= e($perex) ?></textarea>
+                                class="form-control editor" rows="10"><?= e($perex) ?></textarea>
                         </div>
 
                         <div class="row">
