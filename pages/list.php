@@ -45,81 +45,218 @@ function pageHasBlocks(?string $template): bool
 
 function renderPageNode(array $n, int $level = 0): void
 {
-    $pad = str_repeat("&nbsp;&nbsp;&nbsp;", $level);
-
     $id        = (int)$n['id'];
     $parent_id = (int)$n['parent_id'];
     $order     = (int)$n['menu_order'];
-    $title     = htmlspecialchars($n['title'] ?? '');
-    $slug      = htmlspecialchars($n['slug'] ?? '');
-    $status    = $n['status'] ?? 'draft';
-    $template  = $n['template'] ?? 'page';
+
+    $title = htmlspecialchars(
+        $n['title'] ?? '',
+        ENT_QUOTES,
+        'UTF-8'
+    );
+
+    $slug = htmlspecialchars(
+        $n['slug'] ?? '',
+        ENT_QUOTES,
+        'UTF-8'
+    );
+
+    $status   = $n['status'] ?? 'draft';
+    $template = $n['template'] ?? 'page';
 
     $badge = pageStatusBadge($status);
-    $templateLabel = htmlspecialchars(pageTemplateLabel($template));
+
+    $templateLabel = htmlspecialchars(
+        pageTemplateLabel($template),
+        ENT_QUOTES,
+        'UTF-8'
+    );
 
     $isPublished = $status === 'published';
+    $isChild = $level > 0;
+
+    /*
+     * Odsazení podle úrovně.
+     */
+    $padding = $level * 28;
 
     $toggleBtn = $isPublished
-        ? "<a href='status.php?id={$id}&to=draft' class='btn btn-sm btn-outline-secondary me-1' title='Přepnout na koncept'><i class='bi bi-eye-slash'></i></a>"
-        : "<a href='status.php?id={$id}&to=published' class='btn btn-sm btn-success me-1' title='Publikovat'><i class='bi bi-check2-circle'></i></a>";
+        ? "
+            <a
+                href='status.php?id={$id}&to=draft'
+                class='btn btn-sm btn-outline-secondary me-1'
+                title='Přepnout na koncept'
+            >
+                <i class='bi bi-eye-slash'></i>
+            </a>
+        "
+        : "
+            <a
+                href='status.php?id={$id}&to=published'
+                class='btn btn-sm btn-success me-1'
+                title='Publikovat'
+            >
+                <i class='bi bi-check2-circle'></i>
+            </a>
+        ";
 
     $blocksBtn = '';
 
     if (pageHasBlocks($template)) {
         $blocksBtn = "
-            <a href='blocks.php?page_id={$id}'
-               class='btn btn-sm btn-outline-primary me-1'
-               title='Bloky stránky'>
+            <a
+                href='blocks.php?page_id={$id}'
+                class='btn btn-sm btn-outline-primary me-1'
+                title='Bloky stránky'
+            >
                 <i class='bi bi-layout-three-columns'></i>
             </a>
         ";
     }
 
-    echo "
-    <tr class='page-row' data-id='{$id}' data-parent='{$parent_id}' data-level='{$level}'>
-        <td class='text-center'>{$id}</td>
+    /*
+     * Vizuální označení úrovně.
+     */
+    $hierarchyIcon = '';
 
-        <td>
-            {$pad}<i class='bi bi-folder2-open me-1 text-muted'></i>
-            <span class='fw-semibold'>{$title}</span>
-            <div class='text-muted small'>{$pad}/{$slug}</div>
-            <div class='text-muted small'>{$pad}{$templateLabel}</div>
-        </td>
+    if ($isChild) {
+        $hierarchyIcon = "
+            <span class='text-muted me-2'>└</span>
+        ";
+    }
 
-        <td class='text-center'>{$badge}</td>
+    $childLabel = '';
 
-        <td class='text-center'>{$order}</td>
-
-        <td class='text-center text-nowrap'>
-            <div class='btn-group me-1' role='group'>
-                <button type='button' class='btn btn-sm btn-outline-secondary btn-move' data-id='{$id}' data-dir='up' title='Posunout nahoru'>↑</button>
-                <button type='button' class='btn btn-sm btn-outline-secondary btn-move' data-id='{$id}' data-dir='down' title='Posunout dolů'>↓</button>
+    if ($isChild) {
+        $childLabel = "
+            <div
+                class='text-muted small'
+                style='padding-left: {$padding}px;'
+            >
+                Podstránka
             </div>
+        ";
+    }
 
-            {$toggleBtn}
+    echo "
+        <tr
+            class='page-row'
+            data-id='{$id}'
+            data-parent='{$parent_id}'
+            data-level='{$level}'
+        >
 
-            <a href='add.php?parent_id={$id}' class='btn btn-sm btn-success me-1' title='Přidat podstránku'>
-                <i class='bi bi-plus-circle'></i>
-            </a>
+            <td class='text-center'>
+                {$id}
+            </td>
 
-            {$blocksBtn}
+            <td>
 
-            <a href='edit.php?id={$id}' class='btn btn-sm btn-primary me-1' title='Upravit'>
-                <i class='bi bi-pencil'></i>
-            </a>
+                <div
+                    style='padding-left: {$padding}px;'
+                    class='d-flex align-items-center'
+                >
+                    {$hierarchyIcon}
 
-            <a href='delete.php?id={$id}'
-               class='btn btn-sm btn-danger'
-               onclick=\"return confirm('Smazat stránku? Podstránky budou přemístěny na úroveň rodiče.');\"
-               title='Smazat'>
-                <i class='bi bi-trash'></i>
-            </a>
-        </td>
-    </tr>";
+                    <i class='bi bi-file-earmark-text me-2 text-muted'></i>
 
-    foreach (($n['children'] ?? []) as $c) {
-        renderPageNode($c, $level + 1);
+                    <span class='fw-semibold'>
+                        {$title}
+                    </span>
+                </div>
+
+                <div
+                    class='text-muted small'
+                    style='padding-left: {$padding}px;'
+                >
+                    /{$slug}
+                </div>
+
+                <div
+                    class='text-muted small'
+                    style='padding-left: {$padding}px;'
+                >
+                    {$templateLabel}
+                </div>
+
+                {$childLabel}
+
+            </td>
+
+            <td class='text-center'>
+                {$badge}
+            </td>
+
+            <td class='text-center'>
+                {$order}
+            </td>
+
+            <td class='text-left text-nowrap'>
+
+                <div
+                    class='btn-group me-1'
+                    role='group'
+                >
+                    <button
+                        type='button'
+                        class='btn btn-sm btn-outline-secondary btn-move'
+                        data-id='{$id}'
+                        data-dir='up'
+                        title='Posunout nahoru'
+                    >
+                        ↑
+                    </button>
+
+                    <button
+                        type='button'
+                        class='btn btn-sm btn-outline-secondary btn-move'
+                        data-id='{$id}'
+                        data-dir='down'
+                        title='Posunout dolů'
+                    >
+                        ↓
+                    </button>
+                </div>
+
+                {$toggleBtn}
+
+                <a
+                    href='add.php?parent_id={$id}'
+                    class='btn btn-sm btn-success me-1'
+                    title='Přidat podstránku'
+                >
+                    <i class='bi bi-plus-circle'></i>
+                </a>
+
+                {$blocksBtn}
+
+                <a
+                    href='edit.php?id={$id}'
+                    class='btn btn-sm btn-primary me-1'
+                    title='Upravit'
+                >
+                    <i class='bi bi-pencil'></i>
+                </a>
+
+                <a
+                    href='delete.php?id={$id}'
+                    class='btn btn-sm btn-danger'
+                    onclick=\"return confirm('Smazat stránku? Podstránky budou přemístěny na úroveň rodiče.');\"
+                    title='Smazat'
+                >
+                    <i class='bi bi-trash'></i>
+                </a>
+
+            </td>
+
+        </tr>
+    ";
+
+    foreach (($n['children'] ?? []) as $child) {
+        renderPageNode(
+            $child,
+            $level + 1
+        );
     }
 }
 
