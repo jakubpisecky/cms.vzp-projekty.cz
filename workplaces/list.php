@@ -425,8 +425,7 @@ include "../includes/header.php";
                             </th>
 
                             <th
-                                class="text-end"
-                                style="width: 390px;">
+                                class="text-center">
 
                                 Akce
 
@@ -551,50 +550,30 @@ include "../includes/header.php";
 
                                 </td>
 
-                                <td class="text-end text-nowrap">
+                                <td class="text-center">
 
                                     <a
                                         href="pages.php?id=<?= (int)$row['id'] ?>"
                                         class="btn btn-sm btn-outline-primary">
 
-                                        <i class="bi bi-file-earmark-text me-1"></i>
+                                        <i class="bi bi-file-earmark-text"></i>
                                         Stránky
 
                                     </a>
 
                                     <a
-                                        href="categories.php?id=<?= (int)$row['id'] ?>"
-                                        class="btn btn-sm btn-outline-secondary">
-
-                                        Kategorie
-
-                                    </a>
-
-                                    <a
-                                        href="specializations.php?id=<?= (int)$row['id'] ?>"
-                                        class="btn btn-sm btn-outline-secondary">
-
-                                        Odbornosti
-
-                                    </a>
-
-                                    <a
                                         href="edit.php?id=<?= (int)$row['id'] ?>"
-                                        class="btn btn-sm btn-outline-secondary">
-
-                                        Upravit
-
+                                        class="btn btn-sm btn-primary" title="Upravit">
+                                        <i class="bi bi-pencil"></i>
                                     </a>
 
                                     <a
                                         href="delete.php?id=<?= (int)$row['id'] ?>"
-                                        class="btn btn-sm btn-outline-danger"
+                                        class="btn btn-sm btn-danger"
                                         onclick="return confirm(
                                             'Opravdu chcete pracoviště smazat?'
-                                        );">
-
-                                        Smazat
-
+                                        );" title="Smazat">
+                                        <i class="bi bi-trash"></i>
                                     </a>
 
                                 </td>

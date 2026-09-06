@@ -1,5 +1,5 @@
 <?php
-$host = "uvds59.active24.cz";
+$host = "localhost";
 $user = "cmsvzpproj";       // tvůj DB uživatel
 $pass = "U6BDK4VM";           // tvé heslo
 $dbname = "cmsvzpproj";   // tvá databáze
