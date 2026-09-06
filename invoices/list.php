@@ -258,7 +258,7 @@ function invoiceStatusBadge(string $status): string
                 </div>
 
                 <div class="col-md-1 d-flex gap-2">
-                    <button type="submit" class="btn btn-outline-primary" title="Hledat">
+                    <button type="submit" class="btn btn-primary" title="Hledat">
                         <i class="bi bi-search"></i>
                     </button>
                     <a href="list.php" class="btn btn-outline-secondary" title="Reset">
@@ -337,7 +337,6 @@ function invoiceStatusBadge(string $status): string
                         </td>
                         <td><?= number_format((float)$row['total_with_vat'], 2, ',', ' ') ?> <?= htmlspecialchars($row['currency']) ?></td>
                         <td class="text-center">
-                            <div class="d-flex flex-wrap gap-1 justify-content-end">
                                 <?php if (($row['status'] ?? '') !== 'paid'): ?>
                                     <a href="mark_paid.php?id=<?= (int)$row['id'] ?>"
                                     class="btn btn-sm btn-outline-success"
@@ -352,17 +351,16 @@ function invoiceStatusBadge(string $status): string
                                     <i class="bi bi-eye"></i>
                                 </a>
                                 <a href="edit.php?id=<?= (int)$row['id'] ?>"
-                                   class="btn btn-sm btn-outline-primary"
+                                   class="btn btn-sm btn-primary"
                                    title="Upravit">
                                     <i class="bi bi-pencil"></i>
                                 </a>
                                 <a href="delete.php?id=<?= (int)$row['id'] ?>"
-                                   class="btn btn-sm btn-outline-danger"
+                                   class="btn btn-sm btn-danger"
                                    onclick="return confirm('Opravdu smazat tuto fakturu?');"
                                    title="Smazat">
                                     <i class="bi bi-trash"></i>
                                 </a>
-                            </div>
                         </td>
                     </tr>
                 <?php endwhile; ?>

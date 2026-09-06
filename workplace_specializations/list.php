@@ -218,7 +218,7 @@ $stmt->close();
 
                     <button
                         type="submit"
-                        class="btn btn-outline-primary"
+                        class="btn btn-primary"
                     >
                         <i class="bi bi-search me-1"></i>
                         Hledat
@@ -370,7 +370,7 @@ $stmt->close();
                                     class="btn btn-sm btn-primary"
                                     title="Upravit"
                                 >
-                                    <i class="bi bi-pencil-square"></i>
+                                    <i class="bi bi-pencil"></i>
                                 </a>
 
                                 <a

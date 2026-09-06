@@ -105,7 +105,7 @@ $totalPages = max(1, (int)ceil($total / $perPage));
                            value="<?php echo htmlspecialchars($q); ?>">
                 </div>
                 <div class="col-md-4 d-flex gap-2">
-                    <button type="submit" class="btn btn-outline-primary">
+                    <button type="submit" class="btn btn-primary">
                         <i class="bi bi-search"></i> Hledat
                     </button>
                     <a href="list.php" class="btn btn-outline-secondary">Reset</a>
@@ -150,7 +150,7 @@ $totalPages = max(1, (int)ceil($total / $perPage));
                                     <td><?php echo formatDateTimeCz(htmlspecialchars($row['created_at'])); ?></td>
 
                                     <td class="text-center" id="actions-<?php echo $row['id']; ?>">
-                                        <div class="d-flex flex-wrap gap-1 justify-content-end">
+                                        
 
                                         <?php if (($row['status'] ?? '') === 'draft'): ?>
                                             <a href="queue_campaign.php?id=<?php echo (int)$row['id']; ?>"
@@ -197,19 +197,19 @@ $totalPages = max(1, (int)ceil($total / $perPage));
                                             <i class="bi bi-bar-chart"></i>
                                         </a>
                                         <a href="edit.php?id=<?php echo (int)$row['id']; ?>"
-                                        class="btn btn-sm btn-outline-primary"
+                                        class="btn btn-sm btn-primary"
                                         title="Upravit">
                                             <i class="bi bi-pencil"></i>
                                         </a>
 
                                         <a href="delete.php?id=<?php echo (int)$row['id']; ?>"
-                                        class="btn btn-sm btn-outline-danger"
+                                        class="btn btn-sm btn-danger"
                                         onclick="return confirm('Opravdu smazat tuto kampaň?');"
                                         title="Smazat">
                                             <i class="bi bi-trash"></i>
                                         </a>
 
-                                    </div>
+                                    
                                     </td>
                                 </tr>
                             <?php endwhile; ?>

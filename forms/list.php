@@ -113,14 +113,14 @@ include "../includes/header.php";
                                             Zprávy
                                         </a>
 
-                                        <a href="edit.php?id=<?= (int)$row['id'] ?>" class="btn btn-sm btn-outline-secondary">
-                                            Upravit
+                                        <a href="edit.php?id=<?= (int)$row['id'] ?>" class="btn btn-sm btn-primary">
+                                           <i class="bi bi-pencil"></i>
                                         </a>
 
                                         <a href="delete.php?id=<?= (int)$row['id'] ?>"
-                                           class="btn btn-sm btn-outline-danger"
+                                           class="btn btn-sm btn-danger"
                                            onclick="return confirm('Opravdu chcete formulář smazat?');">
-                                            Smazat
+                                            <i class="bi bi-trash"></i>
                                         </a>
                                     </td>
                                 </tr>

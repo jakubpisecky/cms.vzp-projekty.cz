@@ -155,7 +155,7 @@ $stmt->close();
                 </div>
 
                 <div class="col-auto">
-                    <button type="submit" class="btn btn-outline-primary">
+                    <button type="submit" class="btn btn-primary">
                         <i class="bi bi-search me-1"></i> Hledat
                     </button>
                 </div>
@@ -242,16 +242,15 @@ $stmt->close();
 
                             <td class="text-center text-nowrap">
                                 <?= $toggleBtn ?>
-
-                                <a href="edit.php?id=<?= (int)$row['id'] ?>"
-                                   class="btn btn-sm btn-primary me-1"
-                                   title="Upravit">
-                                    <i class="bi bi-pencil-square"></i>
-                                </a>
                                 <a href="blocks.php?id=<?= (int)$row['id'] ?>"
                                 class="btn btn-sm btn-outline-primary"
                                 title="Bloky článku">
                                     <i class="bi bi-layout-three-columns"></i>
+                                </a>
+                                <a href="edit.php?id=<?= (int)$row['id'] ?>"
+                                   class="btn btn-sm btn-primary me-1"
+                                   title="Upravit">
+                                    <i class="bi bi-pencil"></i>
                                 </a>
                                 <a href="delete.php?id=<?= (int)$row['id'] ?>"
                                    class="btn btn-sm btn-danger"

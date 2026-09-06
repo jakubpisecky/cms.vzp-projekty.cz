@@ -316,7 +316,7 @@ $base = buildBaseUrl();
                 </div>
 
                 <div class="col-auto">
-                    <button type="submit" class="btn btn-outline-primary">
+                    <button type="submit" class="btn btn-primary">
                         <i class="bi bi-search me-1"></i> Hledat
                     </button>
                 </div>

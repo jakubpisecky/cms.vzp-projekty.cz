@@ -103,7 +103,7 @@ $totalPages = max(1, (int)ceil($total / $perPage));
                            value="<?= htmlspecialchars($q) ?>">
                 </div>
                 <div class="col-md-4 d-flex gap-2">
-                    <button type="submit" class="btn btn-outline-primary">
+                    <button type="submit" class="btn btn-primary">
                         <i class="bi bi-search"></i> Hledat
                     </button>
                     <a href="customers.php" class="btn btn-outline-secondary">
@@ -151,20 +151,20 @@ $totalPages = max(1, (int)ceil($total / $perPage));
                         <td><?= htmlspecialchars($row['phone'] ?? '') ?></td>
                         <td><?= formatDateTimeCz(htmlspecialchars($row['created_at'])) ?></td>
                         <td class="text-center">
-                            <div class="d-flex flex-wrap">
+                            
                                 <a href="customer_edit.php?id=<?= (int)$row['id'] ?>"
-                                   class="btn btn-sm btn-outline-primary"
+                                   class="btn btn-sm btn-primary"
                                    title="Upravit">
                                     <i class="bi bi-pencil"></i>
                                 </a>
 
                                 <a href="customer_delete.php?id=<?= (int)$row['id'] ?>"
-                                   class="btn btn-sm btn-outline-danger"
+                                   class="btn btn-sm btn-danger"
                                    onclick="return confirm('Opravdu smazat tohoto odběratele?');"
                                    title="Smazat">
                                     <i class="bi bi-trash"></i>
                                 </a>
-                            </div>
+                            
                         </td>
                     </tr>
                 <?php endwhile; ?>

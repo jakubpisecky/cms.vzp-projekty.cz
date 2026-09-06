@@ -209,7 +209,6 @@ if (!$picker) {
                 <div class="col-lg-3">
                     <select name="category_id" class="form-select">
                         <option value="0">Všechny kategorie</option>
-
                         <?php foreach ($categories as $cat): ?>
                             <option value="<?= (int)$cat['id'] ?>"
                                 <?= $categoryId === (int)$cat['id'] ? 'selected' : '' ?>>
@@ -220,7 +219,7 @@ if (!$picker) {
                 </div>
 
                 <div class="col-auto">
-                    <button type="submit" class="btn btn-outline-primary">
+                    <button type="submit" class="btn btn-primary">
                         <i class="bi bi-search me-1"></i> Hledat
                     </button>
                 </div>
@@ -348,7 +347,7 @@ if (!$picker) {
                         <?php if (!$picker): ?>
                             <div class="card-footer text-center p-2 mt-auto bg-white">
                                 <a href="delete.php?id=<?= $id ?>"
-                                   class="btn btn-sm btn-outline-danger"
+                                   class="btn btn-sm btn-danger"
                                    onclick="return confirm('Opravdu smazat obrázek?');">
                                     <i class="bi bi-trash"></i> Smazat
                                 </a>

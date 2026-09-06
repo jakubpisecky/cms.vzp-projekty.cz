@@ -149,7 +149,7 @@ $errorMessages = [
                 </div>
 
                 <div class="col-auto">
-                    <button type="submit" class="btn btn-outline-primary">
+                    <button type="submit" class="btn btn-primary">
                         <i class="bi bi-search me-1"></i> Hledat
                     </button>
                 </div>
@@ -217,7 +217,7 @@ $errorMessages = [
                                 <a href="meta.php?id=<?= $id ?>"
                                    class="btn btn-sm btn-primary me-1"
                                    title="Upravit název">
-                                    <i class="bi bi-pencil me-1"></i> Upravit
+                                    <i class="bi bi-pencil me-1"></i>
                                 </a>
 
                                 <?php if (($r['name'] ?? '') !== 'admin'): ?>

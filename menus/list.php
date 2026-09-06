@@ -134,7 +134,7 @@ $stmt->close();
                 </div>
 
                 <div class="col-auto d-flex align-items-end">
-                    <button class="btn btn-outline-primary">
+                    <button class="btn btn-primary">
                         <i class="bi bi-search me-1"></i>
                         Filtrovat
                     </button>
@@ -204,13 +204,6 @@ $stmt->close();
                             <td class="text-center text-nowrap">
                                 <div class="d-flex flex-wrap justify-content-center gap-1">
 
-                                    <a href="edit.php?id=<?= $id ?>"
-                                       class="btn btn-sm btn-primary"
-                                       title="Upravit">
-                                        <i class="bi bi-pencil"></i>
-                                        Upravit
-                                    </a>
-
                                     <a href="duplicate.php?id=<?= $id ?>"
                                        class="btn btn-sm btn-outline-primary"
                                        title="Duplikovat">
@@ -254,7 +247,11 @@ $stmt->close();
                                             <i class="bi bi-check2-circle"></i>
                                         </a>
                                     <?php endif; ?>
-
+                                    <a href="edit.php?id=<?= $id ?>"
+                                       class="btn btn-sm btn-primary"
+                                       title="Upravit">
+                                        <i class="bi bi-pencil"></i>
+                                    </a>
                                     <a href="delete.php?id=<?= $id ?>"
                                        class="btn btn-sm btn-danger"
                                        onclick="return confirm('Smazat jídelníček pro tento den?');"

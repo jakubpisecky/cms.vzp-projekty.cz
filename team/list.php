@@ -126,7 +126,7 @@ $stmt->close();
                 </div>
 
                 <div class="col-auto">
-                    <button type="submit" class="btn btn-outline-primary">
+                    <button type="submit" class="btn btn-primary">
                         <i class="bi bi-search me-1"></i> Hledat
                     </button>
                 </div>
@@ -239,7 +239,7 @@ $stmt->close();
                                 <a href="edit.php?id=<?= (int)$row['id'] ?>"
                                    class="btn btn-sm btn-primary"
                                    title="Upravit">
-                                    <i class="bi bi-pencil-square"></i>
+                                    <i class="bi bi-pencil"></i>
                                 </a>
 
                                 <a href="delete.php?id=<?= (int)$row['id'] ?>"
